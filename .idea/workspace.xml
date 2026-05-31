@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="b998e4be-2d36-4a18-871b-21d3a29b6124" name="변경" comment="">
+      <change beforePath="$PROJECT_DIR$/game/core/__init__.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/main.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "nanjjang"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/nanjjang/jungboguahak_pygameProject.git",
+    "accountId": "c98aa004-8233-4095-bf54-43655249a769"
+  }
+}]]></component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.0001503494009854" />
+      <entry key="MS500" value="1.2939983373499706" />
+      <entry key="S2" value="2.5856028613572946" />
+      <entry key="S5" value="3.338977875057985" />
+      <entry key="S10" value="4.025085457021962" />
+      <entry key="S30" value="7.494874682318788" />
+      <entry key="S60" value="13.640390471254117" />
+      <entry key="M2" value="27.354912888428988" />
+      <entry key="M5" value="58.55047106099659" />
+      <entry key="M10" value="82.37873514238957" />
+      <entry key="M15" value="93.348356814683" />
+      <entry key="M30" value="106.3981049566847" />
+      <entry key="H1" value="113.84605084026106" />
+      <entry key="H2" value="117.83007573385845" />
+      <entry key="H4" value="119.89118193401679" />
+      <entry key="D1" value="121.64516297838942" />
+      <entry key="W1" value="121.94922581641195" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="0.0" />
+      <entry key="S30" value="0.0" />
+      <entry key="S60" value="0.0" />
+      <entry key="M2" value="0.0" />
+      <entry key="M5" value="0.0" />
+      <entry key="M10" value="0.0" />
+      <entry key="M15" value="0.0" />
+      <entry key="M30" value="0.0" />
+      <entry key="H1" value="0.0" />
+      <entry key="H2" value="0.0" />
+      <entry key="H4" value="0.0" />
+      <entry key="D1" value="0.0" />
+      <entry key="W1" value="0.0" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="0.37894611076098916" />
+      <entry key="MS500" value="1.0265887622726138" />
+      <entry key="S2" value="2.4161070973101433" />
+      <entry key="S5" value="3.2483424990336025" />
+      <entry key="S10" value="3.9668040211567672" />
+      <entry key="S30" value="7.453409237347425" />
+      <entry key="S60" value="13.600366112400975" />
+      <entry key="M2" value="27.31701777244395" />
+      <entry key="M5" value="58.5213642137034" />
+      <entry key="M10" value="82.35915444142246" />
+      <entry key="M15" value="93.33378600716215" />
+      <entry key="M30" value="106.38992451869757" />
+      <entry key="H1" value="113.84170666427204" />
+      <entry key="H2" value="117.82783591180664" />
+      <entry key="H4" value="119.89004452616373" />
+      <entry key="D1" value="121.64497093087681" />
+      <entry key="W1" value="121.94919831967404" />
+    </decayedShown>
+  </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 8,
+  "fromUser": false
+}]]></component>
+  <component name="ProjectId" id="3ETpWZKIKsFPGPbzF6rW3yZ4YMs" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "dev",
+    "junie.onboarding.icon.badge.shown": "true",
+    "last_opened_file_path": "/Users/dbswnstj/작업물/projects/jungboguahak_pygameProject",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-c59985aa861c-c2ffad84badb-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.24374.152" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="디폴트 작업">
+      <changelist id="b998e4be-2d36-4a18-871b-21d3a29b6124" name="변경" comment="" />
+      <created>1780212445872</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1780212445872</updated>
+      <workItem from="1780212446882" duration="1505000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
