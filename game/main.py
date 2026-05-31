@@ -28,5 +28,4 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        if not gameOver:
             
