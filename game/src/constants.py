@@ -1,0 +1,9 @@
+import pygame
+
+SCREEN_WIDTH = 800
+SCREEN_HEIGHT = 600
+FPS = 60
+
+WHITE = (255, 255, 255)
+BLUE = (0, 102, 204)
+GRAY = (200, 200, 200)
