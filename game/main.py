@@ -1,36 +1,38 @@
-import pygame
+import pygame as pg
 import sys
 
 from src.constants import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, WHITE, GRAY
-from components.player import Player
+from src.kirby import Kirby
 
 
 def main():
-    pygame.init()
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("지연쌤팬클럽")
-    clock = pygame.time.Clock()
+    pg.init()
+    screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+    pg.display.set_caption("지연쌤팬클럽")
+    clock = pg.time.Clock()
 
-    player = Player(x=100, y=400, size=50)
+    player = Kirby(x=100, y=400)
 
     running = True
     while running:
         clock.tick(FPS)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        jump_pressed = False
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
                 running = False
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                jump_pressed = True
 
-        player.move()
-        player.update_physics()
+        key = pg.key.get_pressed()
 
         screen.fill(WHITE)
-        pygame.draw.line(screen, GRAY, (0, SCREEN_HEIGHT - 50), (SCREEN_WIDTH, SCREEN_HEIGHT - 50), 5)
-        player.draw(screen)
+        pg.draw.line(screen, GRAY, (0, SCREEN_HEIGHT - 50), (SCREEN_WIDTH, SCREEN_HEIGHT - 50), 5)
+        player.update(screen, key, jump_pressed)
 
-        pygame.display.flip()
+        pg.display.flip()
 
-    pygame.quit()
+    pg.quit()
     sys.exit()
 
 
