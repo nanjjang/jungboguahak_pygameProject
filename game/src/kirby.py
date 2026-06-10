@@ -90,8 +90,9 @@ class Kirby(pg.sprite.Sprite):
             if not self.is_jumping:
                 self.velocity_y = -10.0
                 self.is_jumping = True
-            self.velocity_y = -6.0
-            self.air_jumps += 1
+            elif self.air_jumps < self.max_air_jumps:
+                self.velocity_y = -6.0
+                self.air_jumps += 1
 
         if self.is_jumping:
             self.velocity_y += self.gravity
