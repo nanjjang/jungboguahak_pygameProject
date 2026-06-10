@@ -11,7 +11,7 @@ def main():
     pg.display.set_caption("지연쌤팬클럽")
     clock = pg.time.Clock()
 
-    player = Kirby(x=100, y=400)
+    player = Kirby(x=100, y=600)
 
     running = True
     while running:
@@ -27,7 +27,7 @@ def main():
         key = pg.key.get_pressed()
 
         screen.fill(WHITE)
-        pg.draw.line(screen, GRAY, (0, SCREEN_HEIGHT - 50), (SCREEN_WIDTH, SCREEN_HEIGHT - 50), 5)
+        pg.draw.line(screen, GRAY, (0, SCREEN_HEIGHT - 50), (SCREEN_WIDTH, SCREEN_HEIGHT - 50), 2)
         player.update(screen, key, jump_pressed)
 
         pg.display.flip()

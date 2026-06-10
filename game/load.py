@@ -1,4 +1,3 @@
-from pygame.locals import *
 import os, pygame
 
 def load_image(name):

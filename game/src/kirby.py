@@ -1,6 +1,5 @@
 import pygame as pg
 import os, load
-from pygame.locals import *
 
 from src.constants import SCREEN_WIDTH, SCREEN_HEIGHT
 
@@ -20,7 +19,6 @@ class Kirby(pg.sprite.Sprite):
         self.gravity = 0.6
         self.is_jumping = False
         self.air_jumps = 0
-        self.max_air_jumps = 5
         self.facing_right = True
         self.frame_w = 0
         self.anim_timer = 0
@@ -90,7 +88,7 @@ class Kirby(pg.sprite.Sprite):
             if not self.is_jumping:
                 self.velocity_y = -10.0
                 self.is_jumping = True
-            elif self.air_jumps < self.max_air_jumps:
+            else :
                 self.velocity_y = -6.0
                 self.air_jumps += 1
 
