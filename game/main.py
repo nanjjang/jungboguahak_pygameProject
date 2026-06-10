@@ -8,7 +8,7 @@ from components.player import Player
 def main():
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("파이게임 점프 & 중력 예제")
+    pygame.display.set_caption("지연쌤팬클럽")
     clock = pygame.time.Clock()
 
     player = Player(x=100, y=400, size=50)

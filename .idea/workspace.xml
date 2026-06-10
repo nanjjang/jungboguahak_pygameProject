@@ -4,7 +4,11 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b998e4be-2d36-4a18-871b-21d3a29b6124" name="변경" comment="" />
+    <list default="true" id="b998e4be-2d36-4a18-871b-21d3a29b6124" name="변경" comment="">
+      <change afterPath="$PROJECT_DIR$/game/src/kirby.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/main.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,37 +24,37 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "nanjjang"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;nanjjang&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/nanjjang/jungboguahak_pygameProject.git",
-    "accountId": "c98aa004-8233-4095-bf54-43655249a769"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/nanjjang/jungboguahak_pygameProject.git&quot;,
+    &quot;accountId&quot;: &quot;c98aa004-8233-4095-bf54-43655249a769&quot;
   }
-}]]></component>
+}</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0000434585642748" />
-      <entry key="MS500" value="1.1409988959922983" />
-      <entry key="S2" value="2.989345398656415" />
-      <entry key="S5" value="9.627753348744646" />
-      <entry key="S10" value="19.050450829067653" />
-      <entry key="S30" value="33.741765736035" />
-      <entry key="S60" value="49.3164730082981" />
-      <entry key="M2" value="100.86416979654878" />
-      <entry key="M5" value="259.43331371270466" />
-      <entry key="M10" value="416.06544396618006" />
-      <entry key="M15" value="501.751043033301" />
-      <entry key="M30" value="617.8349879606017" />
-      <entry key="H1" value="692.1004746340805" />
-      <entry key="H2" value="734.4954088149963" />
-      <entry key="H4" value="757.2021755879152" />
-      <entry key="D1" value="776.9550374133588" />
-      <entry key="W1" value="780.4201828212273" />
+      <entry key="MS100" value="1.122568723268593" />
+      <entry key="MS500" value="2.113450721163879" />
+      <entry key="S2" value="4.417391233634286" />
+      <entry key="S5" value="8.910830824386474" />
+      <entry key="S10" value="18.31198199687427" />
+      <entry key="S30" value="42.36980836108518" />
+      <entry key="S60" value="63.044654517750104" />
+      <entry key="M2" value="115.39696323485286" />
+      <entry key="M5" value="274.3122764523337" />
+      <entry key="M10" value="433.45625790917165" />
+      <entry key="M15" value="521.0467154087124" />
+      <entry key="M30" value="640.1019793114613" />
+      <entry key="H1" value="716.4518644755605" />
+      <entry key="H2" value="760.0905325948606" />
+      <entry key="H4" value="783.4781536418403" />
+      <entry key="D1" value="803.8312371380694" />
+      <entry key="W1" value="807.4024186205979" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -72,29 +76,29 @@
       <entry key="W1" value="0.0" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.0010041115891484497" />
-      <entry key="MS500" value="0.295508178028651" />
-      <entry key="S2" value="2.4952180557555037" />
-      <entry key="S5" value="9.360119329171608" />
-      <entry key="S10" value="18.897563598966673" />
-      <entry key="S30" value="33.684484906372866" />
-      <entry key="S60" value="49.2840392413813" />
-      <entry key="M2" value="100.84129811035712" />
-      <entry key="M5" value="259.4149916060599" />
-      <entry key="M10" value="416.04927856069776" />
-      <entry key="M15" value="501.7367714044962" />
-      <entry key="M30" value="617.8249728715452" />
-      <entry key="H1" value="692.0944068791135" />
-      <entry key="H2" value="734.4920505106013" />
-      <entry key="H4" value="757.2004065173849" />
-      <entry key="D1" value="776.9547292566604" />
-      <entry key="W1" value="780.4201384615664" />
+      <entry key="MS100" value="1.0768400106516665" />
+      <entry key="MS500" value="2.0956222256805304" />
+      <entry key="S2" value="4.3956416863958925" />
+      <entry key="S5" value="8.87376461171236" />
+      <entry key="S10" value="18.258560211775205" />
+      <entry key="S30" value="42.327086717145036" />
+      <entry key="S60" value="63.01538729085429" />
+      <entry key="M2" value="115.37476648404174" />
+      <entry key="M5" value="274.2940381851631" />
+      <entry key="M10" value="433.44008775016897" />
+      <entry key="M15" value="521.0324126085955" />
+      <entry key="M30" value="640.0919168936855" />
+      <entry key="H1" value="716.4457582739299" />
+      <entry key="H2" value="760.0871499842518" />
+      <entry key="H4" value="783.4763709261687" />
+      <entry key="D1" value="803.8309264784626" />
+      <entry key="W1" value="807.4023738974773" />
     </decayedShown>
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 8,
-  "fromUser": false
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8,
+  &quot;fromUser&quot;: false
+}</component>
   <component name="ProjectId" id="3ETpWZKIKsFPGPbzF6rW3yZ4YMs" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -109,7 +113,7 @@
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "dev",
+    "git-widget-placeholder": "character",
     "junie.onboarding.icon.badge.shown": "true",
     "last_opened_file_path": "/Users/dbswnstj/작업물/projects/jungboguahak_pygameProject",
     "node.js.detected.package.eslint": "true",
