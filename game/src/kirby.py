@@ -12,6 +12,31 @@ class Kirby(pg.sprite.Sprite):
         self._init_state(x, y)
 
     # ---------------------------------------------------------------- init
+
+    def is_empty(self):
+        return len(self.ability_stack) <= 0
+
+    def push(self, element):
+        self.ability_stack.append(element)
+
+    def pop(self):
+        if self.is_empty():
+            return '스택이 비어있음'
+        return self.ability_stack.pop()
+
+    def pop_same_ability(self, element):
+        if self.is_empty():
+            return '스택이 비어있음'
+        return self.ability_stack.remove(element)
+
+    def peek(self):
+        if self.is_empty():
+            return '스택이 비어있음'
+        ptr = len(self.ability_stack) - 1
+        return self.ability_stack[ptr]
+
+    # ---------------------------------------------------------------------------------- stack functions
+
     def _load_frames(self):
         self.idle_frames = [load.load_image("Kirby1.png")]
         self.move_frames = [load.load_image(f"KirbyMove{i}.png") for i in range(1, 11)]
@@ -40,12 +65,13 @@ class Kirby(pg.sprite.Sprite):
 
     # ---------------------------------------------------------------- update
     def update(self, key, jump_pressed=False, spit_pressed=False,
-               attack_pressed=False, enemies=None):
+               attack_pressed=False, enemies=None, gulp_pressed=False):
         # 입에 문 상태일 때는 흡입 불가
         self.inhaling = bool(key[KEYS['inhale']]) and self.held_element is None
         self._handle_inhale(enemies)
         if spit_pressed:   self._on_spit()
         if attack_pressed: self._on_attack()
+        if gulp_pressed: self._on_gulp()
         self._move(key)
         self._apply_gravity(jump_pressed)
 
@@ -75,24 +101,26 @@ class Kirby(pg.sprite.Sprite):
         """X키: 입에 문 상태 → 별 뱉기 / 능력 있음 → 능력 잃고 별 뱉기."""
         if self.held_element is not None:
             self.held_element = None
-        elif self.ability_stack:
-            self.ability_stack.pop()
+        elif self.ability_stack and not self.is_empty():
+            self.pop()
         self._shoot('star')
-
-    def _on_attack(self):
-        """C키: 입에 문 상태 → 삼키기(능력 획득) / 능력 있음 → 속성 공격(능력 유지)."""
+    def _on_gulp(self):
         if self.held_element is not None:
             self._push_ability(self.held_element)
             self.held_element = None
-        elif self.ability_stack:
-            self._shoot(self.ability_stack[-1])
+    def _on_attack(self):
+        """V키: 입에 문 상태 → 아무것도 안됨 / 능력 있음 → 속성 공격(능력 유지)."""
+        if self.held_element is not None:
+            pass
+        elif not self.is_empty():
+            self._shoot(self.peek())
 
-    # ---------------------------------------------------------------- ability stack
+    # ---------------------------------------------------------------- ability
     def _push_ability(self, element):
         """중복 제거 후 top에 추가 (move-to-top unique stack)."""
         if element in self.ability_stack:
-            self.ability_stack.remove(element)
-        self.ability_stack.append(element)
+            self.pop_same_ability(element)
+        self.push(element)
 
     def _shoot(self, element):
         x = self.rect.right if self.facing_right else self.rect.left
@@ -198,11 +226,11 @@ class Kirby(pg.sprite.Sprite):
         if self.held_element is not None:
             el    = ELEMENTS[self.held_element]
             guide = font.render(
-                f"[{el['label']} 입에 문 중]  X: 뱉기   C: 삼키기   SPACE: 점프",
+                f"[{el['label']} 입에 문 중]  X: 뱉기   ↓: 삼키기   SPACE: 점프",
                 True, el['color'])
         else:
             guide = font.render(
-                "Z(홀드): 흡입   X: 능력뱉기   C: 능력사용   SPACE: 점프",
+                "Z(홀드): 흡입   X: 능력뱉기   V: 능력사용   SPACE: 점프",
                 True, (80, 80, 80))
         surface.blit(guide, (10, SCREEN_HEIGHT - 30))
 

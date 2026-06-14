@@ -35,5 +35,6 @@ KEYS = {
     'jump':   pg.K_SPACE,
     'inhale': pg.K_z,
     'spit':   pg.K_x,
-    'attack': pg.K_c,
+    'attack': pg.K_v,
+    'gulp': pg.K_DOWN,
 }

@@ -2,6 +2,7 @@ import pygame as pg
 import sys
 
 from src.constants import SCREEN_WIDTH, SCREEN_HEIGHT, FPS, WHITE, GRAY, KEYS
+from src.koreanize import KOREAN_TO_KEY
 from src.kirby import Kirby
 from src.enemy import create_enemy
 from src.projectile import Projectile
@@ -10,6 +11,7 @@ from src.projectile import Projectile
 def make_enemies(ground_y):
     spawn = [
         ('fire',     300, 0),
+        ('fire',     500, 0),
         ('electric', 450, 0),
         ('water',    550, 90),   # 새라서 공중에 (fly_offset=90)
         ('earth',    650, 0),
@@ -25,7 +27,6 @@ def make_enemies(ground_y):
 
 def main():
     pg.init()
-    pg.key.stop_text_input()  # 한국어 IME가 키 입력을 가로채지 않도록
     screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pg.display.set_caption("지연쌤팬클럽")
     clock = pg.time.Clock()
@@ -39,17 +40,19 @@ def main():
     while running:
         clock.tick(FPS)
 
-        jump_pressed = spit_pressed = attack_pressed = False
+        jump_pressed = spit_pressed = attack_pressed = gulp_pressed = False
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
             if event.type == pg.KEYDOWN:
-                if event.key == KEYS['jump']:   jump_pressed   = True
-                if event.key == KEYS['spit']:   spit_pressed   = True
-                if event.key == KEYS['attack']: attack_pressed = True
+                key_const = KOREAN_TO_KEY.get(event.unicode, event.key)
+                if key_const == KEYS['jump']:   jump_pressed   = True
+                if key_const == KEYS['spit']:   spit_pressed   = True
+                if key_const == KEYS['attack']: attack_pressed = True
+                if key_const == KEYS['gulp']:   gulp_pressed   = True
 
         key = pg.key.get_pressed()
-        player.update(key, jump_pressed, spit_pressed, attack_pressed, enemies)
+        player.update(key, jump_pressed, spit_pressed, attack_pressed, enemies, gulp_pressed)
 
         for proj_data in player.pending_projectiles:
             projectiles.add(Projectile(**proj_data))
