@@ -314,8 +314,6 @@ class Kirby(pg.sprite.Sprite):
         mouth_x = self.rect.right if self.facing_right else self.rect.left
         mouth_y = self.rect.centery
 
-        pg.draw.rect(surface, (100, 180, 255), self._get_inhale_rect(), 2)
-
         for i in range(6):
             t      = (now / 300 + i / 6) % 1.0
             spread = (1 - t) * 50
