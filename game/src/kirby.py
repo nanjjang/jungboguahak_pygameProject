@@ -3,6 +3,7 @@ import math
 import load
 
 from src.constants import ELEMENTS, KEYS, SCREEN_WIDTH, SCREEN_HEIGHT
+from src.beam_effect import BEAM_ELEMENTS, BeamEffect, FireBeam
 
 
 class Kirby(pg.sprite.Sprite):
@@ -42,6 +43,11 @@ class Kirby(pg.sprite.Sprite):
         self.move_frames = [load.load_image(f"KirbyMove{i}.png") for i in range(1, 11)]
         self.jump_up     = load.load_image("kirbyJump1.png")
         self.jump_down   = load.load_image("kirbyJump7.png")
+        base_size = self.idle_frames[0].get_size()
+        self.inhale_frame = pg.transform.scale(
+            load.load_image("448f53f4cf764b72aed7c281383c82c9-removebg-preview.png"), base_size)
+        self.hover_frame  = pg.transform.scale(
+            load.load_image("KSSU_Kirby_Hover_sprite.png"), base_size)
 
     def _init_state(self, x, y):
         self.image        = self.idle_frames[0]
@@ -56,24 +62,32 @@ class Kirby(pg.sprite.Sprite):
         self.frame_w      = 0
         self.anim_timer   = 0
         self.anim_speed   = 80
-        self.inhaling     = False
+        self.inhaling        = False
+        self.hovering        = False
+        self.jump_held       = False
+        self._prev_jump_held = False   # OS 키반복 방지용
         self.inhale_range = 180
         self.held_element = None   # 입에 문 속성 (삼키기 전)
         self.ability_stack: list[str] = []   # 삼킨 능력 스택, 마지막 = 현재
         self.pending_projectiles: list[dict] = []
+        self._beams: dict[str, BeamEffect] = {}
+        self.beam_kill_cd = 0               # 빔 적 타격 쿨다운 (프레임)
         self.font = load.get_korean_font(18)  # 매 프레임 생성하지 않도록 캐시
 
     # ---------------------------------------------------------------- update
     def update(self, key, jump_pressed=False, spit_pressed=False,
                attack_pressed=False, enemies=None, gulp_pressed=False):
         # 입에 문 상태일 때는 흡입 불가
-        self.inhaling = bool(key[KEYS['inhale']]) and self.held_element is None
+        self.inhaling   = bool(key[KEYS['inhale']]) and self.held_element is None
+        self.jump_held  = bool(key[KEYS['jump']])
+        shift           = bool(key[pg.K_LSHIFT] or key[pg.K_RSHIFT])
+        self.hover_held = self.jump_held and shift
         self._handle_inhale(enemies)
-        if spit_pressed:   self._on_spit()
-        if attack_pressed: self._on_attack()
+        if spit_pressed: self._on_spit()
         if gulp_pressed: self._on_gulp()
+        self._update_beams(bool(key[KEYS['attack']]), key)
         self._move(key)
-        self._apply_gravity(jump_pressed)
+        self._apply_gravity(self.jump_held, self.hover_held)
 
     # ---------------------------------------------------------------- inhale
     def _get_inhale_rect(self):
@@ -108,12 +122,72 @@ class Kirby(pg.sprite.Sprite):
         if self.held_element is not None:
             self._push_ability(self.held_element)
             self.held_element = None
-    def _on_attack(self):
-        """V키: 입에 문 상태 → 아무것도 안됨 / 능력 있음 → 속성 공격(능력 유지)."""
-        if self.held_element is not None:
-            pass
-        elif not self.is_empty():
-            self._shoot(self.peek())
+    def _get_beam(self, element):
+        if element not in self._beams:
+            self._beams[element] = FireBeam() if element == 'fire' else BeamEffect(element)
+        return self._beams[element]
+
+    def _get_fire_direction(self, key):
+        if key[pg.K_UP]:
+            return 'vertical'
+        if key[pg.K_DOWN] and self.is_jumping:
+            return 'diagonal'
+        return 'horizontal'
+
+    def _update_beams(self, attack_held, key=None):
+        if self.is_empty() or self.held_element is not None:
+            for beam in self._beams.values():
+                beam.deactivate()
+        else:
+            current = self.peek()
+            if current in BEAM_ELEMENTS:
+                beam = self._get_beam(current)
+                if attack_held:
+                    if current == 'fire' and key is not None:
+                        beam.try_activate(self._get_fire_direction(key))
+                    else:
+                        beam.try_activate()
+                else:
+                    beam.deactivate()
+
+        mouth_x = self.rect.right if self.facing_right else self.rect.left
+        mouth_y = self.rect.centery
+        for el, beam in self._beams.items():
+            if el == 'fire':
+                beam.update(mouth_x, mouth_y, self.facing_right, kirby_rect=self.rect)
+            else:
+                beam.update(mouth_x, mouth_y, self.facing_right)
+
+        if self.beam_kill_cd > 0:
+            self.beam_kill_cd -= 1
+
+    @property
+    def active_beam_rect(self):
+        """현재 활성 빔의 히트박스. 없으면 None."""
+        if self.is_empty() or self.held_element is not None:
+            return None
+        current = self.peek()
+        if current not in BEAM_ELEMENTS or current not in self._beams:
+            return None
+        beam = self._beams[current]
+        if not beam.active:
+            return None
+        kr  = self.rect
+        fr  = self.facing_right
+        direction = getattr(beam, 'direction', 'horizontal')
+
+        if direction == 'vertical':
+            # midbottom = (kr.centerx, kr.top + 4), size (40, 80)
+            return pg.Rect(kr.centerx - 20, kr.top - 76, 40, 80)
+
+        if direction == 'diagonal':
+            # topleft/topright = (kr.right|kr.left, kr.centery + 4), size (72, 52)
+            x = kr.right if fr else kr.left - 72
+            return pg.Rect(x, kr.centery + 4, 72, 52)
+
+        # horizontal — midleft/midright = (kr.right|kr.left, kr.centery), size (84, 48)
+        x = kr.right if fr else kr.left - 84
+        return pg.Rect(x, kr.centery - 24, 84, 48)
 
     # ---------------------------------------------------------------- ability
     def _push_ability(self, element):
@@ -142,7 +216,11 @@ class Kirby(pg.sprite.Sprite):
             self.facing_right = True
             moving = True
 
-        if not self.is_jumping:
+        if self.hovering and self.hover_held:
+            frame = self.hover_frame
+        elif self.inhaling:
+            frame = self.inhale_frame
+        elif not self.is_jumping:
             frame = self._anim_frame(moving)
         else:
             frame = self.jump_up if self.velocity_y < 0 else self.jump_down
@@ -157,31 +235,67 @@ class Kirby(pg.sprite.Sprite):
             self.frame_w = (self.frame_w + 1) % len(self.move_frames)
         return self.move_frames[self.frame_w]
 
-    def _apply_gravity(self, jump_pressed):
-        if jump_pressed:
+    def _apply_gravity(self, jump_held, hover_held=False):
+        # OS 키반복 이벤트와 무관하게 실제 "방금 눌림"을 직접 감지
+        just_pressed         = jump_held and not self._prev_jump_held
+        self._prev_jump_held = jump_held
+
+        if just_pressed:
             if not self.is_jumping:
+                # 지상 점프
                 self.velocity_y = -10.0
                 self.is_jumping = True
+                self.hovering   = False
             else:
+                # 공중 점프 — 횟수 제한 없음
                 self.velocity_y = -6.0
                 self.air_jumps += 1
+                self.hovering   = True
 
         if self.is_jumping:
-            self.velocity_y += self.gravity
-            self.y_float    += self.velocity_y
-            self.rect.y      = int(self.y_float)
+            if self.hovering and hover_held and self.velocity_y >= 0:
+                # 풍선 낙하: 중력 최소화, 낙하 속도 상한
+                self.velocity_y = min(self.velocity_y + 0.08, 1.2)
+            else:
+                self.velocity_y += self.gravity
+            self.y_float += self.velocity_y
+            self.rect.y   = int(self.y_float)
 
         ground = SCREEN_HEIGHT - 50 - self.rect.height
         if self.rect.y >= ground:
-            self.rect.y   = ground
-            self.y_float  = float(ground)
+            self.rect.y     = ground
+            self.y_float    = float(ground)
             self.velocity_y = 0.0
             self.is_jumping = False
             self.air_jumps  = 0
+            self.hovering   = False
         if self.rect.y < 10:
-            self.rect.y  = 10
-            self.y_float = 10.0
+            self.rect.y     = 10
+            self.y_float    = 10.0
             self.velocity_y = 0.0
+
+    # ---------------------------------------------------------------- beam draw
+    def draw_beams(self, surface):
+        for beam in self._beams.values():
+            beam.draw(surface)
+        self._draw_beam_energy(surface)
+
+    def _draw_beam_energy(self, surface):
+        if self.is_empty():
+            return
+        current = self.peek()
+        if current not in BEAM_ELEMENTS or current not in self._beams:
+            return
+        beam    = self._beams[current]
+        color   = ELEMENTS[current]['color']
+        bar_w, bar_h = 60, 8
+        bx = self.rect.centerx - bar_w // 2
+        by = self.rect.bottom + 5
+        pg.draw.rect(surface, (40, 40, 40), (bx - 1, by - 1, bar_w + 2, bar_h + 2))
+        filled = int(bar_w * beam.energy_ratio)
+        if filled > 0:
+            pg.draw.rect(surface, color, (bx, by, filled, bar_h))
+        pg.draw.rect(surface, (200, 200, 200), (bx, by, bar_w, bar_h), 1)
 
     # ---------------------------------------------------------------- draw
     def draw(self, surface):
@@ -230,7 +344,7 @@ class Kirby(pg.sprite.Sprite):
                 True, el['color'])
         else:
             guide = font.render(
-                "Z(홀드): 흡입   X: 능력뱉기   V: 능력사용   SPACE: 점프",
+                "Z(홀드): 흡입   X: 능력뱉기   V(홀드): 빔공격   SPACE: 점프   Shift+SPACE: 호버",
                 True, (80, 80, 80))
         surface.blit(guide, (10, SCREEN_HEIGHT - 30))
 

@@ -1,0 +1,8 @@
+01_horizontal_fire: 8 frames
+02_vertical_fire: 8 frames
+03_basic_kirby: 132 frames
+04_kirby_fire_grid: 21 frames
+05_fighter_kirby: 252 frames
+06_diagonal_fire: 8 frames
+07_kirby_collection: 453 frames
+TOTAL: 882 frames

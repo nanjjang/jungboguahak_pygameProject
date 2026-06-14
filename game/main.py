@@ -71,6 +71,15 @@ def main():
                     proj.kill()
                     break
 
+        # 빔이 적에 닿으면 적 제거 (쿨다운으로 연속 즉사 방지)
+        beam_rect = player.active_beam_rect
+        if beam_rect and player.beam_kill_cd <= 0:
+            for enemy in list(enemies):
+                if beam_rect.colliderect(enemy.rect) and not enemy.being_inhaled:
+                    enemies.remove(enemy)
+                    player.beam_kill_cd = 20
+                    break
+
         # Draw
         screen.fill(WHITE)
         pg.draw.line(screen, GRAY, (0, ground_y), (SCREEN_WIDTH, ground_y), 2)
@@ -79,6 +88,7 @@ def main():
         player.draw_inhale_effect(screen)
         player.draw(screen)
         projectiles.draw(screen)
+        player.draw_beams(screen)
         player.draw_hud(screen, key)
 
         pg.display.flip()
