@@ -1,4 +1,3 @@
-import math
 import random
 
 import pygame as pg
@@ -11,6 +10,14 @@ from src.constants import (
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
 )
+
+LEVEL_MULTIPLIERS = {
+    1: 1.0,
+    2: 1.12,
+    3: 1.24,
+    4: 1.36,
+    5: 1.48,
+}
 
 
 class EnemyProjectile(pg.sprite.Sprite):
@@ -57,13 +64,11 @@ class EnemyProjectile(pg.sprite.Sprite):
     def _make_frames(self, radius):
         if self.element == "electric":
             size = 36 if radius >= 9 else 28
-            return [
-                pg.transform.scale(
-                    load.load_image(f"spark{index}.png"),
-                    (size, size),
-                )
-                for index in range(1, 4)
-            ]
+            frames = []
+            for index in range(1, 4):
+                image = load.load_image(f"spark{index}.png")
+                frames.append(pg.transform.scale(image, (size, size)))
+            return frames
 
         image = pg.Surface((radius * 2, radius * 2), pg.SRCALPHA)
         color = ELEMENTS[self.element]["color"]
@@ -116,37 +121,40 @@ class Enemy(pg.sprite.Sprite):
         self.defeated = False
 
         scale = 1.65 if is_boss else 1.0
-        self.frames = [
-            pg.transform.scale(
-                frame,
-                (
-                    max(1, round(frame.get_width() * scale)),
-                    max(1, round(frame.get_height() * scale)),
-                ),
-            )
-            for frame in frames
-        ]
+        self.frames = []
+        for frame in frames:
+            width = max(1, round(frame.get_width() * scale))
+            height = max(1, round(frame.get_height() * scale))
+            self.frames.append(pg.transform.scale(frame, (width, height)))
         self.frame_idx = 0
         self.anim_timer = 0
         self.anim_speed = 105 if is_boss else 145
         self.image = self.frames[0]
         self.rect = self.image.get_rect(topleft=(x, y))
 
-        level_mult = 1 + (max(1, level) - 1) * 0.12
-        boss_hp_mult = 5.5 if is_boss else 1.0
-        boss_damage_mult = 1.45 if is_boss else 1.0
+        level_multiplier = LEVEL_MULTIPLIERS.get(level, LEVEL_MULTIPLIERS[5])
+        boss_hp_multiplier = 5.5 if is_boss else 1.0
+        boss_damage_multiplier = 1.45 if is_boss else 1.0
         self.max_hp = max(
             1,
-            round(data["hp"] * settings["hp_mult"] * level_mult * boss_hp_mult),
+            round(
+                data["hp"] * settings["hp_mult"] * level_multiplier * boss_hp_multiplier
+            ),
         )
         self.hp = self.max_hp
         self.contact_damage = max(
             1,
-            round(data["contact_damage"] * settings["damage_mult"] * boss_damage_mult),
+            round(
+                data["contact_damage"]
+                * settings["damage_mult"]
+                * boss_damage_multiplier
+            ),
         )
         self.attack_damage = max(
             1,
-            round(data["attack_damage"] * settings["damage_mult"] * boss_damage_mult),
+            round(
+                data["attack_damage"] * settings["damage_mult"] * boss_damage_multiplier
+            ),
         )
         self.speed = data["speed"] * settings["speed_mult"] * (1.08 if is_boss else 1.0)
         self.patrol_range = data["patrol"] * (1.35 if is_boss else 1.0)
@@ -169,6 +177,7 @@ class Enemy(pg.sprite.Sprite):
         self.next_attack_at = pg.time.get_ticks() + random.randint(500, 1000)
         self.locked_direction = -1
         self.swoop_target = None
+        self.air_moving_down = True
         self.pending_projectiles = []
         self.hit_flash_until = 0
         self.last_melee_serial = -1
@@ -207,7 +216,11 @@ class Enemy(pg.sprite.Sprite):
     def take_damage(self, amount, source_x=None):
         if self.defeated:
             return 0
-        dealt = min(self.hp, max(1, round(amount)))
+        dealt = round(amount)
+        if dealt < 1:
+            dealt = 1
+        if dealt > self.hp:
+            dealt = self.hp
         self.hp -= dealt
         now = pg.time.get_ticks()
         self.hit_flash_until = now + 110
@@ -236,29 +249,33 @@ class Enemy(pg.sprite.Sprite):
     # -------------------------------------------------------------- AI
     def _run_ai(self, target):
         now = pg.time.get_ticks()
-        dx = target.centerx - self.rect.centerx
-        dy = target.centery - self.rect.centery
-        distance = math.hypot(dx, dy)
-        self.facing_right = dx >= 0
+        horizontal_distance = abs(target.centerx - self.rect.centerx)
+        vertical_distance = abs(target.centery - self.rect.centery)
+        self.facing_right = target.centerx >= self.rect.centerx
 
         if self.is_boss:
-            self._boss_ai(target, distance, now)
+            self._boss_ai(target, horizontal_distance, now)
         elif self.ai_type == "chaser":
-            self._chaser_ai(target, distance, now)
+            self._chaser_ai(target, horizontal_distance, now)
         elif self.ai_type == "shooter":
-            self._shooter_ai(target, distance, now)
+            self._shooter_ai(target, horizontal_distance, now)
         elif self.ai_type == "swooper":
-            self._swooper_ai(target, distance, now)
+            self._swooper_ai(
+                target,
+                horizontal_distance,
+                vertical_distance,
+                now,
+            )
         else:
-            self._charger_ai(target, distance, now)
+            self._charger_ai(target, horizontal_distance, now)
         self._keep_in_bounds()
 
-    def _chaser_ai(self, target, distance, now):
-        if distance > self.lose_range:
+    def _chaser_ai(self, target, horizontal_distance, now):
+        if horizontal_distance > self.lose_range:
             self.state = "patrol"
             self._patrol()
             return
-        if now >= self.next_attack_at and abs(target.centerx - self.rect.centerx) < 74:
+        if now >= self.next_attack_at and horizontal_distance < 74:
             self.state = "lunge"
             self.state_until = now + 300
             self.next_attack_at = now + self.attack_cooldown
@@ -268,16 +285,15 @@ class Enemy(pg.sprite.Sprite):
             self.state = "chase"
             self._move_x(self.speed * 1.25)
 
-    def _shooter_ai(self, target, distance, now):
-        if distance > self.lose_range:
+    def _shooter_ai(self, target, horizontal_distance, now):
+        if horizontal_distance > self.lose_range:
             self.state = "patrol"
             self._patrol()
             return
-        horizontal = abs(target.centerx - self.rect.centerx)
-        if horizontal < 120:
+        if horizontal_distance < 120:
             self.state = "retreat"
             self._move_x(-self.speed)
-        elif horizontal > 225:
+        elif horizontal_distance > 225:
             self.state = "approach"
             self._move_x(self.speed)
         else:
@@ -287,7 +303,7 @@ class Enemy(pg.sprite.Sprite):
             self.state = "shoot"
             self.next_attack_at = now + self.attack_cooldown
 
-    def _swooper_ai(self, target, distance, now):
+    def _swooper_ai(self, target, horizontal_distance, vertical_distance, now):
         if self.state == "swoop" and now < self.state_until and self.swoop_target:
             self._move_toward(*self.swoop_target, self.speed * 2.0)
             return
@@ -296,7 +312,11 @@ class Enemy(pg.sprite.Sprite):
             if abs(self.rect.y - self.home_y) < 5:
                 self.state = "patrol"
             return
-        if distance <= self.detect_range and now >= self.next_attack_at:
+        target_is_near = (
+            horizontal_distance <= self.detect_range
+            and vertical_distance <= self.detect_height
+        )
+        if target_is_near and now >= self.next_attack_at:
             error = random.randint(-self.aim_error, self.aim_error)
             self.swoop_target = (target.centerx + error, target.centery)
             self.state = "swoop"
@@ -308,7 +328,7 @@ class Enemy(pg.sprite.Sprite):
         else:
             self._air_patrol()
 
-    def _charger_ai(self, target, distance, now):
+    def _charger_ai(self, target, horizontal_distance, now):
         if self.state == "windup":
             if now >= self.state_until:
                 self.state = "charge"
@@ -319,7 +339,7 @@ class Enemy(pg.sprite.Sprite):
                 self.rect.x += round(self.locked_direction * self.speed * 3.4)
                 return
             self.state = "patrol"
-        if distance <= self.detect_range and now >= self.next_attack_at:
+        if horizontal_distance <= self.detect_range and now >= self.next_attack_at:
             self.state = "windup"
             self.state_until = now + self.reaction_ms
             self.locked_direction = 1 if target.centerx > self.rect.centerx else -1
@@ -327,14 +347,14 @@ class Enemy(pg.sprite.Sprite):
             return
         self._patrol()
 
-    def _boss_ai(self, target, distance, now):
+    def _boss_ai(self, target, horizontal_distance, now):
         if self.state == "boss_dash":
             if now < self.state_until:
                 self.rect.x += round(self.locked_direction * self.speed * 3.2)
                 return
             self.state = "boss_chase"
         if now >= self.next_attack_at:
-            if distance < 185 or random.random() < 0.5:
+            if horizontal_distance < 185 or random.random() < 0.5:
                 self.state = "boss_dash"
                 self.locked_direction = 1 if target.centerx > self.rect.centerx else -1
                 self.state_until = now + 720
@@ -351,14 +371,21 @@ class Enemy(pg.sprite.Sprite):
             self._move_x(self.speed)
 
     def _shoot_at(self, target, speed, dy_override=None, radius=7):
-        dx = target.centerx - self.rect.centerx
-        dy = target.centery - self.rect.centery
-        distance = max(1.0, math.hypot(dx, dy))
-        error = random.randint(-self.aim_error, self.aim_error)
-        shot_dx = speed * dx / distance
-        shot_dy = (
-            speed * (dy + error) / distance if dy_override is None else dy_override
-        )
+        direction = 1 if target.centerx >= self.rect.centerx else -1
+        shot_dx = speed * direction
+
+        shot_dy = dy_override
+        if shot_dy is None:
+            target_y = target.centery
+            target_y += random.randint(-self.aim_error, self.aim_error)
+            vertical_difference = target_y - self.rect.centery
+            if vertical_difference < -25:
+                shot_dy = -speed / 2
+            elif vertical_difference > 25:
+                shot_dy = speed / 2
+            else:
+                shot_dy = 0
+
         self.pending_projectiles.append(
             EnemyProjectile(
                 self.rect.centerx,
@@ -392,28 +419,43 @@ class Enemy(pg.sprite.Sprite):
 
     def _air_patrol(self):
         self._patrol()
-        bob = math.sin(pg.time.get_ticks() / 260) * 0.7
-        self.rect.y = round(self.home_y + bob * 8)
+        if self.air_moving_down:
+            self.rect.y += 1
+            if self.rect.y >= self.home_y + 8:
+                self.air_moving_down = False
+        else:
+            self.rect.y -= 1
+            if self.rect.y <= self.home_y - 8:
+                self.air_moving_down = True
 
     def _move_x(self, amount):
         direction = 1 if self.facing_right else -1
         self.rect.x += round(direction * amount)
 
     def _move_toward(self, x, y, speed):
-        dx = x - self.rect.centerx
-        dy = y - self.rect.centery
-        distance = max(1.0, math.hypot(dx, dy))
-        self.rect.x += round(dx / distance * speed)
-        self.rect.y += round(dy / distance * speed)
+        step = max(1, round(speed))
+        if x < self.rect.centerx:
+            self.rect.x -= step
+        elif x > self.rect.centerx:
+            self.rect.x += step
+
+        if y < self.rect.centery:
+            self.rect.y -= step
+        elif y > self.rect.centery:
+            self.rect.y += step
 
     def _pull_toward(self, kirby_rect):
         self._move_toward(kirby_rect.centerx, kirby_rect.centery, 10)
 
     def _keep_in_bounds(self):
-        self.rect.x = max(0, min(self.world_width - self.rect.width, self.rect.x))
-        if self.ai_type != "swooper":
-            self.rect.bottom = min(self.rect.bottom, self.ground_y)
-        self.rect.y = max(8, self.rect.y)
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.right > self.world_width:
+            self.rect.right = self.world_width
+        if self.ai_type != "swooper" and self.rect.bottom > self.ground_y:
+            self.rect.bottom = self.ground_y
+        if self.rect.top < 8:
+            self.rect.top = 8
 
     def _animate(self):
         now = pg.time.get_ticks()

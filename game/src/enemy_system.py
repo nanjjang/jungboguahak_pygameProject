@@ -2,19 +2,26 @@ from src.constants import DIFFICULTY_SETTINGS
 
 
 def select_active_enemies(enemies, player, difficulty):
-    bosses = {enemy for enemy in enemies if enemy.is_boss}
-    candidates = [
-        enemy
-        for enemy in enemies
-        if not enemy.is_boss and not enemy.defeated and enemy.can_recognize(player.rect)
-    ]
-    candidates.sort(
-        key=lambda enemy: (
-            abs(enemy.rect.centerx - player.rect.centerx) - (70 if enemy.engaged else 0)
-        )
-    )
+    active_enemies = set()
+    candidates = []
+
+    for index, enemy in enumerate(enemies):
+        if enemy.is_boss:
+            active_enemies.add(enemy)
+            continue
+        if enemy.defeated:
+            continue
+        if not enemy.can_recognize(player.rect):
+            continue
+
+        distance = abs(enemy.rect.centerx - player.rect.centerx)
+        candidates.append((distance, index, enemy))
+
+    candidates.sort()
     limit = DIFFICULTY_SETTINGS[difficulty]["max_active_enemies"]
-    return bosses | set(candidates[:limit])
+    for _, _, enemy in candidates[:limit]:
+        active_enemies.add(enemy)
+    return active_enemies
 
 
 def update_enemies(state):

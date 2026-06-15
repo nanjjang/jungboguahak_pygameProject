@@ -1,4 +1,3 @@
-import math
 import random
 
 import pygame as pg
@@ -57,7 +56,9 @@ class FireBeam:
     """스프라이트 기반 방향성 불 빔. BeamEffect와 동일한 인터페이스."""
 
     def __init__(self):
-        self._frames = {d: _load_fire_frames(d) for d in _FIRE_FOLDERS}
+        self._frames = {}
+        for direction in _FIRE_FOLDERS:
+            self._frames[direction] = _load_fire_frames(direction)
         self.energy = BEAM_MAX_ENERGY
         self.active = False
         self.direction = "horizontal"
@@ -137,11 +138,11 @@ class FireBeam:
 
 
 class Particle:
-    __slots__ = ("x", "y", "dx", "dy", "color", "size", "life", "max_life", "gravity")
-
     def __init__(self, x, y, dx, dy, color, size, life, gravity=0.0):
-        self.x, self.y = float(x), float(y)
-        self.dx, self.dy = float(dx), float(dy)
+        self.x = float(x)
+        self.y = float(y)
+        self.dx = float(dx)
+        self.dy = float(dy)
         self.color = color
         self.size = float(size)
         self.life = life
@@ -199,21 +200,30 @@ class BeamEffect:
                 self.energy = 0
                 self.active = False
             else:
-                spawn = _SPAWNERS.get(self.element)
-                if spawn:
-                    spawn(self.particles, mouth_x, mouth_y, facing_right)
+                self._spawn_particles(mouth_x, mouth_y, facing_right)
         else:
             self.energy = min(BEAM_MAX_ENERGY, self.energy + _REGEN)
 
-        for p in self.particles:
-            p.update()
-        self.particles = [p for p in self.particles if not p.dead]
+        active_particles = []
+        for particle in self.particles:
+            particle.update()
+            if not particle.dead:
+                active_particles.append(particle)
+        self.particles = active_particles
 
         if self.active and self._frames:
             self._frame_t += 1000 / 60
             if self._frame_t >= _ELEMENT_FRAME_MS:
                 self._frame_t -= _ELEMENT_FRAME_MS
                 self._frame_i = (self._frame_i + 1) % len(self._frames)
+
+    def _spawn_particles(self, mouth_x, mouth_y, facing_right):
+        if self.element == "water":
+            _spawn_water(self.particles, mouth_x, mouth_y, facing_right)
+        elif self.element == "electric":
+            _spawn_electric(self.particles, mouth_x, mouth_y, facing_right)
+        elif self.element == "earth":
+            _spawn_earth(self.particles, mouth_x, mouth_y, facing_right)
 
     def draw(self, surface, camera_x=0):
         has_sprite_effect = self.active and (
@@ -232,7 +242,10 @@ class BeamEffect:
             # 불·빛은 안쪽에 밝은 코어 추가 → 자연스러운 발광
             if self.element in ("fire", "electric") and r > 3:
                 inner_r = max(1, r // 2)
-                bright = tuple(min(255, c + 110) for c in p.color)
+                red = min(255, p.color[0] + 110)
+                green = min(255, p.color[1] + 110)
+                blue = min(255, p.color[2] + 110)
+                bright = (red, green, blue)
                 pg.draw.circle(overlay, (*bright, alpha), pos, inner_r)
 
         # 불·빛: 가산 합성으로 겹치는 곳일수록 밝아짐
@@ -266,39 +279,41 @@ class BeamEffect:
 
 
 def _spawn_water(particles, mx, my, facing_right):
-    d = 1 if facing_right else -1
+    direction = 1 if facing_right else -1
     for _ in range(3):
-        speed = random.uniform(5, 8)
-        angle = random.uniform(-0.25, 0.25)
-        dx = d * speed * math.cos(angle)
-        dy = speed * math.sin(angle) - random.uniform(0.0, 0.8)
+        dx = direction * random.uniform(5, 8)
+        dy = random.uniform(-2, 2)
         color = (random.randint(80, 160), random.randint(180, 230), 255)
         size = random.uniform(3, 7)
         life = random.randint(12, 20)
         particles.append(
-            Particle(mx + d * 24, my, dx, dy, color, size, life, gravity=0.18)
+            Particle(
+                mx + direction * 24,
+                my,
+                dx,
+                dy,
+                color,
+                size,
+                life,
+                gravity=0.18,
+            )
         )
 
 
 def _spawn_electric(particles, mx, my, facing_right):
-    d = 1 if facing_right else -1
-    # 주 빔 — 빠르고 직선
+    direction = 1 if facing_right else -1
     for _ in range(10):
-        speed = random.uniform(18, 26)
-        angle = random.uniform(-0.08, 0.08)
-        dx = d * speed * math.cos(angle)
-        dy = speed * math.sin(angle)
-        b = random.randint(200, 255)
-        color = (b, b, random.randint(150, 220))
+        dx = direction * random.uniform(18, 26)
+        dy = random.uniform(-2, 2)
+        brightness = random.randint(200, 255)
+        color = (brightness, brightness, random.randint(150, 220))
         size = random.uniform(5, 11)
         life = random.randint(6, 12)
         particles.append(Particle(mx, my, dx, dy, color, size, life, gravity=0.0))
-    # 전기 스파크 — 넓게 흩어짐
+
     for _ in range(4):
-        speed = random.uniform(8, 15)
-        angle = random.uniform(-0.5, 0.5)
-        dx = d * speed * math.cos(angle)
-        dy = speed * math.sin(angle)
+        dx = direction * random.uniform(8, 15)
+        dy = random.uniform(-6, 6)
         color = (255, 255, random.randint(80, 200))
         size = random.uniform(3, 6)
         life = random.randint(4, 8)
@@ -306,23 +321,17 @@ def _spawn_electric(particles, mx, my, facing_right):
 
 
 def _spawn_earth(particles, mx, my, facing_right):
-    d = 1 if facing_right else -1
-    # 큰 돌덩이
+    direction = 1 if facing_right else -1
     for _ in range(3):
-        speed = random.uniform(5, 9)
-        angle = random.uniform(-0.3, 0.3)
-        dx = d * speed * math.cos(angle)
-        dy = speed * math.sin(angle) - random.uniform(1, 2)
+        dx = direction * random.uniform(5, 9)
+        dy = random.uniform(-4, 1)
         color = random.choice([(139, 90, 43), (100, 60, 20), (120, 75, 30)])
         size = random.uniform(13, 22)
         life = random.randint(22, 38)
         particles.append(Particle(mx, my, dx, dy, color, size, life, gravity=0.45))
-    # 흙먼지 잔여물
     for _ in range(5):
-        speed = random.uniform(3, 7)
-        angle = random.uniform(-0.5, 0.5)
-        dx = d * speed * math.cos(angle)
-        dy = speed * math.sin(angle) - random.uniform(0, 1)
+        dx = direction * random.uniform(3, 7)
+        dy = random.uniform(-4, 3)
         color = (
             random.randint(150, 180),
             random.randint(110, 140),
@@ -331,11 +340,3 @@ def _spawn_earth(particles, mx, my, facing_right):
         size = random.uniform(4, 8)
         life = random.randint(10, 20)
         particles.append(Particle(mx, my, dx, dy, color, size, life, gravity=0.35))
-
-
-_SPAWNERS = {
-    "water": _spawn_water,
-    "electric": _spawn_electric,
-    "earth": _spawn_earth,
-    # 'fire' 는 FireBeam이 스프라이트로 처리 — 여기서 제외
-}

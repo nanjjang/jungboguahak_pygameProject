@@ -59,19 +59,19 @@ class GameState:
     def update_camera(self, reset=False):
         if reset:
             self.camera_x = 0.0
+
         max_camera_x = max(0, self.stage.world_width - SCREEN_WIDTH)
-        target = max(
-            0,
-            min(
-                max_camera_x,
-                self.player.rect.centerx - round(SCREEN_WIDTH * 0.42),
-            ),
-        )
-        self.camera_x += (target - self.camera_x) * 0.14
-        if abs(target - self.camera_x) < 0.5:
-            self.camera_x = float(target)
+        target = self.player.rect.centerx - SCREEN_WIDTH // 2
+        if target < 0:
+            target = 0
+        if target > max_camera_x:
+            target = max_camera_x
+        self.camera_x = float(target)
 
     def update_damage_numbers(self):
+        visible_numbers = []
         for number in self.damage_numbers:
             number.update()
-        self.damage_numbers = [number for number in self.damage_numbers if number.alive]
+            if number.alive:
+                visible_numbers.append(number)
+        self.damage_numbers = visible_numbers

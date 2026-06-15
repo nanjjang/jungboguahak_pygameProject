@@ -1,4 +1,3 @@
-import math
 import random
 
 import pygame as pg
@@ -53,15 +52,16 @@ class DifficultyMenu:
         self.potion = load.load_image("potion.png").convert_alpha()
         self.potion = pg.transform.scale(self.potion, (72, 72))
         rng = random.Random(17)
-        self.confetti = [
-            (
+        self.confetti = []
+        colors = ((255, 218, 45), (255, 240, 120), (255, 128, 35))
+        for _ in range(34):
+            confetti = (
                 rng.randrange(0, SCREEN_WIDTH),
                 rng.randrange(40, SCREEN_HEIGHT - 40),
                 rng.randrange(7, 19),
-                rng.choice(((255, 218, 45), (255, 240, 120), (255, 128, 35))),
+                rng.choice(colors),
             )
-            for _ in range(34)
-        ]
+            self.confetti.append(confetti)
 
     @property
     def difficulty(self):
@@ -95,14 +95,13 @@ class DifficultyMenu:
         self._draw_controls(surface)
 
     def _draw_background(self, surface, data):
-        top = data["color"]
         bottom = (255, 205, 35) if self.difficulty != "hard" else (245, 90, 35)
-        for y in range(SCREEN_HEIGHT):
-            ratio = y / SCREEN_HEIGHT
-            color = tuple(
-                round(top[i] * (1 - ratio) + bottom[i] * ratio) for i in range(3)
-            )
-            pg.draw.line(surface, color, (0, y), (SCREEN_WIDTH, y))
+        surface.fill(data["color"])
+        pg.draw.rect(
+            surface,
+            bottom,
+            (0, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT // 2),
+        )
 
         for x, y, size, color in self.confetti:
             shade = (*color, 80)
@@ -138,16 +137,14 @@ class DifficultyMenu:
         tube = pg.Rect(82, 135, 54, 285)
         pg.draw.rect(surface, (255, 245, 210), tube, border_radius=12)
 
-        segment_height = tube.height / 3
         colors = ((70, 205, 95), (255, 174, 32), (235, 48, 54))
         for index, color in enumerate(colors):
-            y = round(tube.bottom - segment_height * (index + 1))
-            rect = pg.Rect(
-                tube.x + 7, y + 4, tube.width - 14, round(segment_height - 8)
-            )
+            y = tube.bottom - 95 * (index + 1)
+            rect = pg.Rect(tube.x + 7, y + 4, tube.width - 14, 87)
             pg.draw.rect(surface, color, rect, border_radius=5)
 
-        marker_y = round(tube.bottom - segment_height * (self.selected_index + 0.5))
+        marker_positions = (372, 277, 182)
+        marker_y = marker_positions[self.selected_index]
         pg.draw.polygon(
             surface,
             (255, 245, 75),
@@ -202,9 +199,11 @@ class DifficultyMenu:
         pg.draw.ellipse(surface, (255, 255, 250), (260, 400, 345, 124))
         pg.draw.ellipse(surface, data["dark"], (300, 427, 265, 76))
 
-        for index in range(data["spice"] + 2):
+        y_offsets = (-8, 7, -4, 9, -2)
+        item_count = data["spice"] + 2
+        for index in range(item_count):
             x = 335 + index * 46
-            y = 461 + round(math.sin(index * 1.7) * 12)
+            y = 461 + y_offsets[index]
             pg.draw.circle(surface, data["color"], (x, y), 12)
             pg.draw.circle(surface, (255, 220, 60), (x, y), 5)
 
@@ -212,7 +211,7 @@ class DifficultyMenu:
         surface.blit(bottle, bottle.get_rect(midbottom=(564, 442)))
 
     def _draw_kirby(self, surface, data):
-        bob = round(math.sin(pg.time.get_ticks() / 230) * 5)
+        bob = 5 if (pg.time.get_ticks() // 300) % 2 == 0 else 0
         kirby_rect = self.kirby.get_rect(midbottom=(690, 482 + bob))
         surface.blit(self.kirby, kirby_rect)
 

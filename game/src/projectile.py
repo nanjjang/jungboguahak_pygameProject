@@ -1,7 +1,6 @@
 import pygame as pg
-import math
 
-from src.constants import ELEMENTS, SCREEN_WIDTH, SCREEN_HEIGHT
+from src.constants import ELEMENTS, SCREEN_HEIGHT, SCREEN_WIDTH
 
 
 class Projectile(pg.sprite.Sprite):
@@ -47,18 +46,19 @@ class Projectile(pg.sprite.Sprite):
 
 # 속성별 모양 함수 — 새 속성 추가 시 함수만 등록하면 됨
 def _draw_star(surf, size, color):
-    cx, cy = size // 2, size // 2
-    r_out, r_in = size // 2, size // 4
-    pts = [
-        (
-            cx
-            + (r_out if i % 2 == 0 else r_in) * math.cos(math.pi / 5 * i - math.pi / 2),
-            cy
-            + (r_out if i % 2 == 0 else r_in) * math.sin(math.pi / 5 * i - math.pi / 2),
-        )
-        for i in range(10)
+    points = [
+        (size // 2, 0),
+        (size * 6 // 10, size * 3 // 10),
+        (size, size * 3 // 10),
+        (size * 7 // 10, size * 6 // 10),
+        (size * 8 // 10, size),
+        (size // 2, size * 7 // 10),
+        (size * 2 // 10, size),
+        (size * 3 // 10, size * 6 // 10),
+        (0, size * 3 // 10),
+        (size * 4 // 10, size * 3 // 10),
     ]
-    pg.draw.polygon(surf, color, pts)
+    pg.draw.polygon(surf, color, points)
 
 
 def _draw_fire(surf, size, color):

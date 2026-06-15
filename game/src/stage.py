@@ -1,9 +1,25 @@
-import math
-
 import pygame as pg
 
 from src.constants import DIFFICULTY_SETTINGS
 from src.enemy import create_enemy
+
+WORLD_PALETTES = (
+    ((205, 239, 255), (120, 205, 130), (75, 155, 85)),
+    ((255, 232, 190), (205, 174, 95), (145, 115, 65)),
+    ((220, 213, 255), (145, 125, 205), (92, 77, 150)),
+    ((195, 235, 230), (90, 185, 170), (55, 125, 120)),
+    ((235, 213, 230), (185, 105, 145), (120, 65, 100)),
+)
+
+ROUTE_WIDTHS = {
+    1: (2550, 2770),
+    2: (2730, 2950),
+    3: (2910, 3130),
+    4: (3090, 3310),
+    5: (3270, 3490),
+}
+
+BOSS_ELEMENTS = ("earth", "fire", "electric", "water", "earth")
 
 
 class StageManager:
@@ -48,9 +64,12 @@ class StageManager:
         return self._spawn_route_enemies()
 
     def goal_unlocked(self, enemies):
-        return not self.is_boss_stage or not any(
-            enemy.is_boss and not enemy.defeated for enemy in enemies
-        )
+        if not self.is_boss_stage:
+            return True
+        for enemy in enemies:
+            if enemy.is_boss and not enemy.defeated:
+                return False
+        return True
 
     def near_goal(self, player_rect):
         return player_rect.colliderect(self.goal_rect.inflate(36, 20))
@@ -81,18 +100,12 @@ class StageManager:
     def draw_environment(self, surface, camera_x, enemies, font):
         """Draw lightweight route staging while the full background is deferred."""
         camera_x = round(camera_x)
-        palette = (
-            ((205, 239, 255), (120, 205, 130), (75, 155, 85)),
-            ((255, 232, 190), (205, 174, 95), (145, 115, 65)),
-            ((220, 213, 255), (145, 125, 205), (92, 77, 150)),
-            ((195, 235, 230), (90, 185, 170), (55, 125, 120)),
-            ((235, 213, 230), (185, 105, 145), (120, 65, 100)),
-        )[self.world - 1]
+        palette = WORLD_PALETTES[self.world - 1]
         sky, ground, ground_dark = palette
         surface.fill(sky)
 
         # Distant rounded hills move more slowly than the route.
-        parallax = round(camera_x * 0.28)
+        parallax = camera_x // 4
         for x in range(-300, self.world_width + 500, 360):
             sx = x - parallax
             pg.draw.circle(surface, ground, (sx, self.ground_y + 55), 190)
@@ -130,13 +143,12 @@ class StageManager:
             return
 
         unlocked = self.goal_unlocked(enemies)
-        pulse = 8 + round(4 * math.sin(pg.time.get_ticks() / 160))
         glow = pg.Surface((rect.width + 50, rect.height + 50), pg.SRCALPHA)
         glow_color = (255, 255, 220, 80) if unlocked else (80, 85, 100, 65)
         pg.draw.rect(
             glow,
             glow_color,
-            glow.get_rect().inflate(-pulse, -pulse),
+            glow.get_rect().inflate(-8, -8),
             border_radius=18,
         )
         surface.blit(glow, glow.get_rect(center=rect.center))
@@ -166,26 +178,34 @@ class StageManager:
     def _stage_width(self):
         if self.is_boss_stage:
             return 1120
-        return 2550 + (self.world - 1) * 180 + (self.substage - 1) * 220
+        widths = ROUTE_WIDTHS[self.world]
+        return widths[self.substage - 1]
 
     def _make_goal_rect(self):
         return pg.Rect(self.world_width - 100, self.ground_y - 108, 58, 108)
 
     def _spawn_route_enemies(self):
         settings = DIFFICULTY_SETTINGS[self.difficulty]
-        count = max(
-            4,
-            5 + settings["spawn_bonus"] + (self.world - 1) // 2 + self.substage - 1,
-        )
+        count = 5
+        if self.substage == 2:
+            count += 1
+        if self.world >= 3:
+            count += 1
+        if self.world == 5:
+            count += 1
+        count += settings["spawn_bonus"]
+        if count < 4:
+            count = 4
+
         elements = ("fire", "electric", "water", "earth")
         enemies = []
         route_start = 470
         route_end = self.world_width - 330
-        spacing = (route_end - route_start) / max(1, count - 1)
+        spacing = (route_end - route_start) / (count - 1)
 
         for index in range(count):
-            element = elements[(index + self.world + self.substage - 2) % len(elements)]
-            offset = ((index * 83 + self.world * 41 + self.substage * 29) % 121) - 60
+            element = elements[index % len(elements)]
+            offset = -35 if index % 2 == 0 else 35
             x = round(route_start + spacing * index + offset)
             enemy = create_enemy(
                 element,
@@ -196,14 +216,17 @@ class StageManager:
                 ground_y=self.ground_y,
                 world_width=self.world_width,
             )
-            fly_offset = 90 + (index % 2) * 35 if element == "water" else 0
+            fly_offset = 0
+            if element == "water":
+                fly_offset = 90
+                if index % 2 == 1:
+                    fly_offset = 125
             enemy.set_spawn_bottom(self.ground_y - fly_offset)
             enemies.append(enemy)
         return enemies
 
     def _spawn_boss(self):
-        boss_elements = ("earth", "fire", "electric", "water", "earth")
-        element = boss_elements[self.world - 1]
+        element = BOSS_ELEMENTS[self.world - 1]
         enemy = create_enemy(
             element,
             760,

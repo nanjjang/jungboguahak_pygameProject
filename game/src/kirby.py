@@ -1,5 +1,4 @@
 import pygame as pg
-import math
 import load
 
 from src.constants import ELEMENTS, KEYS, SCREEN_WIDTH, SCREEN_HEIGHT
@@ -861,29 +860,33 @@ class Kirby(pg.sprite.Sprite):
             color = ELEMENTS[self.held_element]["color"]
             bx = self.rect.right + 4 if self.facing_right else self.rect.left - 4
             bx -= round(camera_x)
-            r = 10 + int(3 * abs(math.sin(pg.time.get_ticks() / 150)))
-            pg.draw.circle(surface, color, (bx, self.rect.centery), r)
-            pg.draw.circle(surface, (255, 255, 255), (bx, self.rect.centery), r, 2)
+            radius = 13 if (pg.time.get_ticks() // 150) % 2 == 0 else 10
+            pg.draw.circle(surface, color, (bx, self.rect.centery), radius)
+            pg.draw.circle(
+                surface,
+                (255, 255, 255),
+                (bx, self.rect.centery),
+                radius,
+                2,
+            )
 
     def draw_inhale_effect(self, surface, camera_x=0):
         if not self.inhaling:
             return
-        now = pg.time.get_ticks()
         mouth_x = self.rect.right if self.facing_right else self.rect.left
         mouth_y = self.rect.centery
-        for i in range(6):
-            t = (now / 300 + i / 6) % 1.0
-            spread = (1 - t) * 50
-            oy = (i - 2.5) * (spread / 2.5)
-            px = int(
-                mouth_x
-                - camera_x
-                + (1 - t) * self.inhale_range * (1 if self.facing_right else -1)
-            )
-            py = int(mouth_y + oy)
-            r = max(3, int(9 * (1 - t) + 3))
-            blue = int(120 + 135 * t)
-            pg.draw.circle(surface, (30, 140, blue), (px, py), r)
+        direction = 1 if self.facing_right else -1
+        phase = (pg.time.get_ticks() // 60) % 5
+        y_offsets = (-20, -10, 0, 10, 20)
+
+        for index in range(5):
+            step = (index + phase) % 5 + 1
+            distance = step * 30
+            x = mouth_x - camera_x + direction * distance
+            y = mouth_y + y_offsets[index]
+            radius = 9 - step
+            blue = 140 + step * 20
+            pg.draw.circle(surface, (30, 140, blue), (int(x), y), radius)
 
     def draw_hud(self, surface, key=None):
         font = self.font
