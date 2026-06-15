@@ -27,7 +27,9 @@ def _sprite(name, authored_left=False, canvas_size=_SPRITE_SIZE, angle=0):
         image = pg.transform.scale(image, size)
 
     canvas = pg.Surface(canvas_size, pg.SRCALPHA)
-    canvas.blit(image, image.get_rect(midbottom=(canvas.get_width() // 2, canvas.get_height())))
+    canvas.blit(
+        image, image.get_rect(midbottom=(canvas.get_width() // 2, canvas.get_height()))
+    )
     return canvas
 
 
@@ -37,10 +39,7 @@ def _c7(i):
 
 
 def _basic_frames(*indices):
-    return [
-        _sprite(f"03_basic_kirby/frame_{i:03d}.png")
-        for i in indices
-    ]
+    return [_sprite(f"03_basic_kirby/frame_{i:03d}.png") for i in indices]
 
 
 def _water_shot_frame(index):
@@ -60,17 +59,26 @@ class Kirby(pg.sprite.Sprite):
         self._init_state(x, y)
 
     # ---------------------------------------------------------------- stack
-    def is_empty(self):        return len(self.ability_stack) <= 0
-    def push(self, element):   self.ability_stack.append(element)
+    def is_empty(self):
+        return not self.ability_stack
+
+    def push(self, element):
+        self.ability_stack.append(element)
+
     def pop(self):
-        if self.is_empty(): return '스택이 비어있음'
+        if self.is_empty():
+            return "스택이 비어있음"
         return self.ability_stack.pop()
+
     def pop_same_ability(self, element):
-        if self.is_empty(): return '스택이 비어있음'
+        if self.is_empty():
+            return "스택이 비어있음"
         return self.ability_stack.remove(element)
+
     def peek(self):
-        if self.is_empty(): return '스택이 비어있음'
-        return self.ability_stack[len(self.ability_stack) - 1]
+        if self.is_empty():
+            return "스택이 비어있음"
+        return self.ability_stack[-1]
 
     # ---------------------------------------------------------------- load
     def _load_frames(self):
@@ -79,7 +87,9 @@ class Kirby(pg.sprite.Sprite):
         self.move_frames = _basic_frames(*range(15, 23))
         self.jump_up = _basic_frames(33)[0]
         self.jump_down = _basic_frames(23)[0]
-        self.hover_frame = _basic_frames(11)[0]
+        self.hover_frame = _sprite(
+            "KSSU_Kirby_Hover_sprite.png",
+        )
 
         # Inhale, full-mouth movement, and spit/recovery.
         self.inhale_frames = [_c7(i) for i in range(98, 104)]
@@ -90,20 +100,20 @@ class Kirby(pg.sprite.Sprite):
         self.spit_frames = [_c7(i) for i in (107, 104, 108, 109)]
         breath_horizontal = _basic_frames(3, 49, 49, 3)
         self.element_forms = {
-            'water': {
-                'idle': _sprite("07_kirby_collection/frame_337.png"),
-                'move': [
+            "water": {
+                "idle": _sprite("07_kirby_collection/frame_337.png"),
+                "move": [
                     _sprite(f"07_kirby_collection/frame_{i:03d}.png")
                     for i in range(331, 347)
                 ],
-                'jump_up': _sprite("07_kirby_collection/frame_351.png"),
-                'jump_down': _sprite("07_kirby_collection/frame_357.png"),
+                "jump_up": _sprite("07_kirby_collection/frame_351.png"),
+                "jump_down": _sprite("07_kirby_collection/frame_357.png"),
             },
         }
         self.ability_frames = {
-            'fire': {
-                'horizontal': breath_horizontal,
-                'vertical': [
+            "fire": {
+                "horizontal": breath_horizontal,
+                "vertical": [
                     _sprite(
                         f"03_basic_kirby/frame_{i:03d}.png",
                         canvas_size=(46, 46),
@@ -111,7 +121,7 @@ class Kirby(pg.sprite.Sprite):
                     )
                     for i in (3, 49, 49, 3)
                 ],
-                'diagonal': [
+                "diagonal": [
                     _sprite(
                         f"03_basic_kirby/frame_{i:03d}.png",
                         canvas_size=(44, 40),
@@ -120,14 +130,14 @@ class Kirby(pg.sprite.Sprite):
                     for i in (3, 49, 49, 3)
                 ],
             },
-            'water': {
-                'horizontal': [
+            "water": {
+                "horizontal": [
                     _water_shot_frame(i)
                     for i in (258, 254, 255, 256, 257, 256, 255, 254)
                 ],
             },
-            'electric': {
-                'horizontal': [
+            "electric": {
+                "horizontal": [
                     _sprite(
                         f"07_kirby_collection/frame_{i:03d}.png",
                         canvas_size=(42, 52),
@@ -135,61 +145,67 @@ class Kirby(pg.sprite.Sprite):
                     for i in range(202, 214)
                 ],
             },
-            'earth': {'horizontal': breath_horizontal},
+            "earth": {"horizontal": breath_horizontal},
         }
 
         # Same-key follow-ups form independent three-stage punch/kick combos.
         self.attack_combos = {
-            'punch': [
+            "punch": [
                 {
-                    'name': '잽',
-                    'frames': _basic_frames(1, 64, 68, 66, 1),
-                    'frame_ms': 36,
-                    'hit_frames': frozenset((2, 3)),
-                    'hitbox': (28, 2, 22),
-                    'motion': {2: 1},
+                    "name": "잽",
+                    "frames": _basic_frames(1, 64, 68, 66, 1),
+                    "frame_ms": 36,
+                    "hit_frames": frozenset((2, 3)),
+                    "hitbox": (28, 2, 22),
+                    "damage": 12,
+                    "motion": {2: 1},
                 },
                 {
-                    'name': '크로스',
-                    'frames': _basic_frames(1, 69, 72, 76, 77, 1),
-                    'frame_ms': 38,
-                    'hit_frames': frozenset((2, 3, 4)),
-                    'hitbox': (34, 0, 25),
-                    'motion': {2: 2, 3: 1},
+                    "name": "크로스",
+                    "frames": _basic_frames(1, 69, 72, 76, 77, 1),
+                    "frame_ms": 38,
+                    "hit_frames": frozenset((2, 3, 4)),
+                    "hitbox": (34, 0, 25),
+                    "damage": 18,
+                    "motion": {2: 2, 3: 1},
                 },
                 {
-                    'name': '브레이크 피니시',
-                    'frames': _basic_frames(1, 55, 58, 68, 76, 77, 1),
-                    'frame_ms': 40,
-                    'hit_frames': frozenset((3, 4, 5)),
-                    'hitbox': (40, -4, 32),
-                    'motion': {2: 2, 3: 3, 4: 2},
+                    "name": "브레이크 피니시",
+                    "frames": _basic_frames(1, 55, 58, 68, 76, 77, 1),
+                    "frame_ms": 40,
+                    "hit_frames": frozenset((3, 4, 5)),
+                    "hitbox": (40, -4, 32),
+                    "damage": 30,
+                    "motion": {2: 2, 3: 3, 4: 2},
                 },
             ],
-            'kick': [
+            "kick": [
                 {
-                    'name': '단발 킥',
-                    'frames': _basic_frames(1, 100, 101, 104, 1),
-                    'frame_ms': 42,
-                    'hit_frames': frozenset((1, 2, 3)),
-                    'hitbox': (32, -8, 34),
-                    'motion': {1: 1, 2: 1},
+                    "name": "단발 킥",
+                    "frames": _basic_frames(1, 100, 101, 104, 1),
+                    "frame_ms": 42,
+                    "hit_frames": frozenset((1, 2, 3)),
+                    "hitbox": (32, -8, 34),
+                    "damage": 16,
+                    "motion": {1: 1, 2: 1},
                 },
                 {
-                    'name': '에어리얼 체인',
-                    'frames': _basic_frames(1, 90, 91, 94, 96, 99, 1),
-                    'frame_ms': 40,
-                    'hit_frames': frozenset((1, 3, 4, 5)),
-                    'hitbox': (38, -8, 38),
-                    'motion': {2: 2, 3: 2, 4: 2},
+                    "name": "에어리얼 체인",
+                    "frames": _basic_frames(1, 90, 91, 94, 96, 99, 1),
+                    "frame_ms": 40,
+                    "hit_frames": frozenset((1, 3, 4, 5)),
+                    "hitbox": (38, -8, 38),
+                    "damage": 23,
+                    "motion": {2: 2, 3: 2, 4: 2},
                 },
                 {
-                    'name': '소머솔트 피니시',
-                    'frames': _basic_frames(1, 94, 96, 100, 101, 104, 1),
-                    'frame_ms': 42,
-                    'hit_frames': frozenset((1, 2, 4, 5, 6)),
-                    'hitbox': (42, -12, 40),
-                    'motion': {2: 2, 3: 2, 4: 3, 5: 2},
+                    "name": "소머솔트 피니시",
+                    "frames": _basic_frames(1, 94, 96, 100, 101, 104, 1),
+                    "frame_ms": 42,
+                    "hit_frames": frozenset((1, 2, 4, 5, 6)),
+                    "hitbox": (42, -12, 40),
+                    "damage": 36,
+                    "motion": {2: 2, 3: 2, 4: 3, 5: 2},
                 },
             ],
         }
@@ -199,48 +215,57 @@ class Kirby(pg.sprite.Sprite):
         self.image = self.idle_frames[0]
         self.rect = pg.Rect(x, y, *_BODY_SIZE)
         self.y_float = float(y)
+        self.spawn_point = (x, y)
+        self.world_width = SCREEN_WIDTH
+
+        # 체력 / 생명
+        self.max_hp = 100
+        self.hp = self.max_hp
+        self.lives = 3
+        self.game_over = False
+        self.invulnerable_until = 0
+        self.hit_flash_until = 0
 
         # 이동
-        self.speed       = 5
-        self.velocity_y  = 0.0
-        self.gravity     = 0.6
-        self.is_jumping  = False
-        self.air_jumps   = 0
+        self.speed = 5
+        self.velocity_y = 0.0
+        self.gravity = 0.6
+        self.is_jumping = False
         self.facing_right = True
-        self.frame_w     = 0
-        self.anim_timer  = 0
-        self.anim_speed  = 80     # ms / walk frame
+        self.frame_w = 0
+        self.anim_timer = 0
+        self.anim_speed = 80  # ms / walk frame
 
         # 입력 엣지 감지
         self._prev_jump_held = False
-        self._prev_d_held    = False
-        self._prev_f_held    = False
+        self._prev_d_held = False
+        self._prev_f_held = False
 
         # 흡입 / 호버
-        self.inhaling    = False
+        self.inhaling = False
         self.inhale_anim_idx = 0
         self.inhale_anim_t = pg.time.get_ticks()
         self.inhale_anim_ms = 75
-        self.hovering    = False
-        self.jump_held   = False
-        self.hover_held  = False
+        self.hovering = False
+        self.jump_held = False
+        self.hover_held = False
         self.inhale_range = 180
 
         # 물기 / 능력
-        self.held_element:  str | None   = None
-        self.ability_stack: list[str]    = []
-        self.held_anim_idx  = 0
-        self.held_anim_t    = 0
-        self.held_anim_ms   = 85
+        self.held_element: str | None = None
+        self.ability_stack: list[str] = []
+        self.held_anim_idx = 0
+        self.held_anim_t = 0
+        self.held_anim_ms = 85
         self.ability_anim_idx = 0
         self.ability_anim_t = 0
         self.ability_anim_ms = 70
         self.ability_anim_key = None
 
         # 뱉기 애니메이션 (원샷)
-        self.spit_anim_idx  = -1
-        self.spit_anim_t    = 0
-        self.spit_anim_ms   = 60
+        self.spit_anim_idx = -1
+        self.spit_anim_t = 0
+        self.spit_anim_ms = 60
 
         # 근접 콤보
         self.attack_kind: str | None = None
@@ -252,44 +277,58 @@ class Kirby(pg.sprite.Sprite):
         self.attack_chain_stage = 0
         self.attack_chain_until = 0
         self.attack_chain_ms = 220
+        self.attack_serial = 0
 
         # 기타
-        self.pending_projectiles: list[dict]       = []
-        self._beams:              dict[str, BeamEffect] = {}
+        self.pending_projectiles: list[dict] = []
+        self._beams: dict[str, BeamEffect] = {}
         self.beam_kill_cd = 0
         self.font = load.get_korean_font(18)
 
     # ---------------------------------------------------------------- update
-    def update(self, key, jump_pressed=False, spit_pressed=False,
-               attack_pressed=False, enemies=None, gulp_pressed=False,
-               punch_pressed=False, kick_pressed=False):
+    def update(
+        self,
+        key,
+        enemies=None,
+        *,
+        spit_pressed=False,
+        gulp_pressed=False,
+        punch_pressed=False,
+        kick_pressed=False,
+    ):
         # 흡입: 입에 문 상태이거나 공격 중이면 불가
-        self.inhaling = (bool(key[KEYS['inhale']])
-                         and self.held_element is None
-                         and not self._in_attack())
+        self.inhaling = (
+            bool(key[KEYS["inhale"]])
+            and self.held_element is None
+            and not self._in_attack()
+        )
 
-        self.jump_held  = bool(key[KEYS['jump']])
-        shift           = bool(key[pg.K_LSHIFT] or key[pg.K_RSHIFT])
+        self.jump_held = bool(key[KEYS["jump"]])
+        shift = bool(key[pg.K_LSHIFT] or key[pg.K_RSHIFT])
         self.hover_held = self.jump_held and shift
 
         # D / F 키 엣지 감지 (근접 공격)
         d_held = bool(key[pg.K_d])
         f_held = bool(key[pg.K_f])
         just_punch = punch_pressed or (d_held and not self._prev_d_held)
-        just_kick  = kick_pressed or (f_held and not self._prev_f_held)
+        just_kick = kick_pressed or (f_held and not self._prev_f_held)
         self._prev_d_held = d_held
         self._prev_f_held = f_held
 
-        can_attack = (self.held_element is None
-                      and self.spit_anim_idx < 0
-                      and not self.inhaling)
-        if just_punch and can_attack: self._on_attack('punch')
-        if just_kick  and can_attack: self._on_attack('kick')
+        can_attack = (
+            self.held_element is None and self.spit_anim_idx < 0 and not self.inhaling
+        )
+        if just_punch and can_attack:
+            self._on_attack("punch")
+        if just_kick and can_attack:
+            self._on_attack("kick")
 
         self._handle_inhale(enemies)
-        if spit_pressed and not self._in_attack(): self._on_spit()
-        if gulp_pressed: self._on_gulp()
-        self._update_beams(bool(key[KEYS['attack']]), key)
+        if spit_pressed and not self._in_attack():
+            self._on_spit()
+        if gulp_pressed:
+            self._on_gulp()
+        self._update_beams(bool(key[KEYS["attack"]]), key)
         moving = self._move(key)
         self._apply_gravity(self.jump_held, self.hover_held)
         self._update_image(moving)
@@ -313,6 +352,11 @@ class Kirby(pg.sprite.Sprite):
             return
         zone = self._get_inhale_rect()
         for enemy in list(enemies):
+            if not getattr(enemy, "inhaleable", True) or getattr(
+                enemy, "defeated", False
+            ):
+                enemy.being_inhaled = False
+                continue
             if self.inhaling:
                 if zone.colliderect(enemy.rect):
                     enemy.being_inhaled = True
@@ -320,10 +364,10 @@ class Kirby(pg.sprite.Sprite):
                 enemy.being_inhaled = False
 
             if enemy.being_inhaled and self.rect.colliderect(enemy.rect):
-                self.held_element  = enemy.element
-                self.inhaling      = False
+                self.held_element = enemy.element
+                self.inhaling = False
                 self.held_anim_idx = 0
-                self.held_anim_t   = pg.time.get_ticks()
+                self.held_anim_t = pg.time.get_ticks()
                 enemies.remove(enemy)
 
     # ---------------------------------------------------------------- actions
@@ -334,8 +378,8 @@ class Kirby(pg.sprite.Sprite):
         elif not self.is_empty():
             self.pop()
         self.spit_anim_idx = 0
-        self.spit_anim_t   = pg.time.get_ticks()
-        self._shoot('star')
+        self.spit_anim_t = pg.time.get_ticks()
+        self._shoot("star")
 
     def _on_gulp(self):
         if self.held_element is not None:
@@ -364,6 +408,7 @@ class Kirby(pg.sprite.Sprite):
         self.attack_frame_idx = 0
         self.attack_frame_t = pg.time.get_ticks()
         self.attack_queue_count = queue_count
+        self.attack_serial += 1
         self.attack_chain_kind = None
         self.attack_chain_stage = 0
         self.attack_chain_until = 0
@@ -388,13 +433,17 @@ class Kirby(pg.sprite.Sprite):
     # ---------------------------------------------------------------- beam
     def _get_beam(self, element):
         if element not in self._beams:
-            self._beams[element] = FireBeam() if element == 'fire' else BeamEffect(element)
+            self._beams[element] = (
+                FireBeam() if element == "fire" else BeamEffect(element)
+            )
         return self._beams[element]
 
     def _get_fire_direction(self, key):
-        if key[pg.K_UP]:    return 'vertical'
-        if key[pg.K_DOWN] and self.is_jumping: return 'diagonal'
-        return 'horizontal'
+        if key[pg.K_UP]:
+            return "vertical"
+        if key[pg.K_DOWN] and self.is_jumping:
+            return "diagonal"
+        return "horizontal"
 
     def _update_beams(self, attack_held, key=None):
         if self.is_empty() or self.held_element is not None or self._in_attack():
@@ -405,7 +454,7 @@ class Kirby(pg.sprite.Sprite):
             if current in BEAM_ELEMENTS:
                 beam = self._get_beam(current)
                 if attack_held:
-                    if current == 'fire' and key is not None:
+                    if current == "fire" and key is not None:
                         beam.try_activate(self._get_fire_direction(key))
                     else:
                         beam.try_activate()
@@ -413,9 +462,9 @@ class Kirby(pg.sprite.Sprite):
                     beam.deactivate()
 
         for el, beam in self._beams.items():
-            direction = getattr(beam, 'direction', 'horizontal')
+            direction = getattr(beam, "direction", "horizontal")
             mouth_x, mouth_y = self._beam_mouth_position(direction)
-            if el == 'fire':
+            if el == "fire":
                 beam.update(mouth_x, mouth_y, self.facing_right, kirby_rect=self.rect)
             else:
                 beam.update(mouth_x, mouth_y, self.facing_right)
@@ -430,7 +479,7 @@ class Kirby(pg.sprite.Sprite):
         beam = self._beams.get(current)
         if current not in self.ability_frames or beam is None or not beam.active:
             return None
-        return current, getattr(beam, 'direction', 'horizontal')
+        return current, getattr(beam, "direction", "horizontal")
 
     def _equipped_form(self):
         if self.is_empty() or self.held_element is not None:
@@ -439,10 +488,10 @@ class Kirby(pg.sprite.Sprite):
         return current if current in self.element_forms else None
 
     def _beam_mouth_position(self, direction):
-        if direction == 'vertical':
+        if direction == "vertical":
             x_offset = 6 if self.facing_right else -6
             return self.rect.centerx + x_offset, self.rect.top - 10
-        if direction == 'diagonal':
+        if direction == "diagonal":
             x = self.rect.right if self.facing_right else self.rect.left
             return x, self.rect.centery + 5
         x = self.rect.right if self.facing_right else self.rect.left
@@ -459,13 +508,12 @@ class Kirby(pg.sprite.Sprite):
         beam = self._beams[current]
         if not beam.active:
             return None
-        kr = self.rect
         fr = self.facing_right
-        direction = getattr(beam, 'direction', 'horizontal')
+        direction = getattr(beam, "direction", "horizontal")
         mouth_x, mouth_y = self._beam_mouth_position(direction)
-        if direction == 'vertical':
+        if direction == "vertical":
             return pg.Rect(mouth_x - 20, mouth_y - 80, 40, 80)
-        if direction == 'diagonal':
+        if direction == "diagonal":
             x = mouth_x if fr else mouth_x - 72
             return pg.Rect(x, mouth_y, 72, 52)
         x = mouth_x if fr else mouth_x - 84
@@ -475,13 +523,31 @@ class Kirby(pg.sprite.Sprite):
     def melee_hit_rect(self):
         """Current combo stage hitbox, active only on impact frames."""
         attack = self._current_attack()
-        if attack is None or self.attack_frame_idx not in attack['hit_frames']:
+        if attack is None or self.attack_frame_idx not in attack["hit_frames"]:
             return None
 
         kr = self.rect
-        reach, top_offset, height = attack['hitbox']
+        reach, top_offset, height = attack["hitbox"]
         x = kr.right - 4 if self.facing_right else kr.left - reach + 4
         return pg.Rect(x, kr.top + top_offset, reach, height)
+
+    @property
+    def melee_damage(self):
+        attack = self._current_attack()
+        if attack is None or self.attack_frame_idx not in attack["hit_frames"]:
+            return 0
+        return attack["damage"]
+
+    @property
+    def beam_damage(self):
+        if self.is_empty():
+            return 0
+        return {
+            "fire": 10,
+            "water": 7,
+            "electric": 9,
+            "earth": 12,
+        }.get(self.peek(), 0)
 
     # ---------------------------------------------------------------- ability
     def _push_ability(self, element):
@@ -491,11 +557,73 @@ class Kirby(pg.sprite.Sprite):
 
     def _shoot(self, element):
         x = self.rect.right if self.facing_right else self.rect.left
-        self.pending_projectiles.append({
-            'x': x, 'y': self.rect.centery,
-            'facing_right': self.facing_right,
-            'element': element,
-        })
+        self.pending_projectiles.append(
+            {
+                "x": x,
+                "y": self.rect.centery,
+                "facing_right": self.facing_right,
+                "element": element,
+            }
+        )
+
+    # ---------------------------------------------------------------- health
+    @property
+    def invulnerable(self):
+        return pg.time.get_ticks() < self.invulnerable_until
+
+    def set_spawn_point(self, x, y):
+        self.spawn_point = (x, y)
+
+    def set_world_bounds(self, width):
+        self.world_width = max(SCREEN_WIDTH, int(width))
+        self.rect.x = min(self.rect.x, self.world_width - self.rect.width)
+
+    def reset_position(self):
+        self.rect.topleft = self.spawn_point
+        self.y_float = float(self.rect.y)
+        self.velocity_y = 0.0
+        self.is_jumping = False
+        self.hovering = False
+        self.inhaling = False
+        self._finish_attack()
+        self.attack_chain_kind = None
+        self.attack_chain_stage = 0
+        self.attack_chain_until = 0
+        for beam in self._beams.values():
+            beam.deactivate()
+
+    def take_damage(self, amount, source_x=None):
+        if self.game_over or self.invulnerable:
+            return 0
+        dealt = min(self.hp, max(1, round(amount)))
+        self.hp -= dealt
+        now = pg.time.get_ticks()
+        self.hit_flash_until = now + 180
+        self.invulnerable_until = now + 900
+
+        if source_x is not None:
+            direction = 1 if self.rect.centerx >= source_x else -1
+            self.rect.x = max(
+                0,
+                min(self.world_width - self.rect.width, self.rect.x + direction * 24),
+            )
+        self.velocity_y = -4.2
+        self.is_jumping = True
+
+        if self.hp <= 0:
+            self.lives -= 1
+            if self.lives > 0:
+                self.hp = self.max_hp
+                self.reset_position()
+                self.invulnerable_until = now + 1600
+            else:
+                self.hp = 0
+                self.game_over = True
+                self.inhaling = False
+                self._finish_attack()
+                for beam in self._beams.values():
+                    beam.deactivate()
+        return dealt
 
     # ---------------------------------------------------------------- animation ticks
     def _tick_inhale_anim(self):
@@ -510,13 +638,13 @@ class Kirby(pg.sprite.Sprite):
             return self.held_idle
         now = pg.time.get_ticks()
         if now - self.held_anim_t >= self.held_anim_ms:
-            self.held_anim_t   = now
+            self.held_anim_t = now
             self.held_anim_idx = (self.held_anim_idx + 1) % len(self.held_frames)
         return self.held_frames[self.held_anim_idx]
 
     def _tick_ability_anim(self, element, direction):
         frame_sets = self.ability_frames[element]
-        direction = direction if direction in frame_sets else 'horizontal'
+        direction = direction if direction in frame_sets else "horizontal"
         anim_key = (element, direction)
         if self.ability_anim_key != anim_key:
             self.ability_anim_key = anim_key
@@ -535,7 +663,7 @@ class Kirby(pg.sprite.Sprite):
             return
         now = pg.time.get_ticks()
         if now - self.spit_anim_t >= self.spit_anim_ms:
-            self.spit_anim_t    = now
+            self.spit_anim_t = now
             self.spit_anim_idx += 1
             if self.spit_anim_idx >= len(self.spit_frames):
                 self.spit_anim_idx = -1
@@ -546,17 +674,19 @@ class Kirby(pg.sprite.Sprite):
             return
 
         now = pg.time.get_ticks()
-        if now - self.attack_frame_t < attack['frame_ms']:
+        if now - self.attack_frame_t < attack["frame_ms"]:
             return
 
         self.attack_frame_t = now
         self.attack_frame_idx += 1
-        if self.attack_frame_idx < len(attack['frames']):
+        if self.attack_frame_idx < len(attack["frames"]):
             self._apply_attack_motion(self.attack_frame_idx)
             return
 
-        if (self.attack_queue_count > 0
-                and self.attack_stage < len(self.attack_combos[self.attack_kind]) - 1):
+        if (
+            self.attack_queue_count > 0
+            and self.attack_stage < len(self.attack_combos[self.attack_kind]) - 1
+        ):
             kind = self.attack_kind
             self._start_attack(
                 kind,
@@ -570,13 +700,13 @@ class Kirby(pg.sprite.Sprite):
         attack = self._current_attack()
         if attack is None:
             return
-        distance = attack['motion'].get(frame_idx, 0)
+        distance = attack["motion"].get(frame_idx, 0)
         if distance == 0:
             return
         direction = 1 if self.facing_right else -1
         self.rect.x = max(
             0,
-            min(SCREEN_WIDTH - self.rect.width, self.rect.x + distance * direction),
+            min(self.world_width - self.rect.width, self.rect.x + distance * direction),
         )
 
     # ---------------------------------------------------------------- movement
@@ -590,7 +720,9 @@ class Kirby(pg.sprite.Sprite):
             self.facing_right = False
             moving = True
         if key[pg.K_RIGHT]:
-            self.rect.x = min(SCREEN_WIDTH - self.rect.width, self.rect.x + self.speed)
+            self.rect.x = min(
+                self.world_width - self.rect.width, self.rect.x + self.speed
+            )
             self.facing_right = True
             moving = True
         return moving
@@ -601,14 +733,16 @@ class Kirby(pg.sprite.Sprite):
 
         attack = self._current_attack()
         if attack is not None:
-            frame = attack['frames'][self.attack_frame_idx]
+            frame = attack["frames"][self.attack_frame_idx]
         elif self.spit_anim_idx >= 0:
             frame = self.spit_frames[self.spit_anim_idx]
         elif self.inhaling:
             frame = self._tick_inhale_anim()
         elif self.held_element is not None:
             if self.is_jumping:
-                frame = self.held_jump_up if self.velocity_y < 0 else self.held_jump_down
+                frame = (
+                    self.held_jump_up if self.velocity_y < 0 else self.held_jump_down
+                )
             else:
                 frame = self._tick_held_anim(moving)
         elif (ability_state := self._active_beam_state()) is not None:
@@ -616,11 +750,11 @@ class Kirby(pg.sprite.Sprite):
         elif (form_element := self._equipped_form()) is not None:
             form = self.element_forms[form_element]
             if self.is_jumping:
-                frame = form['jump_up'] if self.velocity_y < 0 else form['jump_down']
+                frame = form["jump_up"] if self.velocity_y < 0 else form["jump_down"]
             elif moving:
-                frame = self._anim_frame(moving, form['move'])
+                frame = self._anim_frame(moving, form["move"])
             else:
-                frame = form['idle']
+                frame = form["idle"]
         elif self.hovering and self.hover_held:
             frame = self.hover_frame
         elif not self.is_jumping:
@@ -635,7 +769,9 @@ class Kirby(pg.sprite.Sprite):
             self.ability_anim_idx = 0
             self.ability_anim_t = pg.time.get_ticks()
             self.ability_anim_key = None
-        self.image = frame if self.facing_right else pg.transform.flip(frame, True, False)
+        self.image = (
+            frame if self.facing_right else pg.transform.flip(frame, True, False)
+        )
 
     def _anim_frame(self, moving, frames=None):
         frames = self.move_frames if frames is None else frames
@@ -649,18 +785,17 @@ class Kirby(pg.sprite.Sprite):
 
     # ---------------------------------------------------------------- gravity
     def _apply_gravity(self, jump_held, hover_held=False):
-        just_pressed         = jump_held and not self._prev_jump_held
+        just_pressed = jump_held and not self._prev_jump_held
         self._prev_jump_held = jump_held
 
         if just_pressed:
             if not self.is_jumping:
                 self.velocity_y = -10.0
                 self.is_jumping = True
-                self.hovering   = False
+                self.hovering = False
             else:
                 self.velocity_y = -6.0
-                self.air_jumps += 1
-                self.hovering   = True
+                self.hovering = True
 
         if self.is_jumping:
             if self.hovering and hover_held and self.velocity_y >= 0:
@@ -668,117 +803,140 @@ class Kirby(pg.sprite.Sprite):
             else:
                 self.velocity_y += self.gravity
             self.y_float += self.velocity_y
-            self.rect.y   = int(self.y_float)
+            self.rect.y = int(self.y_float)
 
         ground = SCREEN_HEIGHT - 50 - self.rect.height
         if self.rect.y >= ground:
-            self.rect.y     = ground
-            self.y_float    = float(ground)
+            self.rect.y = ground
+            self.y_float = float(ground)
             self.velocity_y = 0.0
             self.is_jumping = False
-            self.air_jumps  = 0
-            self.hovering   = False
+            self.hovering = False
         if self.rect.y < 10:
-            self.rect.y     = 10
-            self.y_float    = 10.0
+            self.rect.y = 10
+            self.y_float = 10.0
             self.velocity_y = 0.0
 
     # ---------------------------------------------------------------- beam draw
-    def draw_beams(self, surface):
+    def draw_beams(self, surface, camera_x=0):
         for beam in self._beams.values():
-            beam.draw(surface)
-        self._draw_beam_energy(surface)
+            beam.draw(surface, camera_x)
+        self._draw_beam_energy(surface, camera_x)
 
-    def _draw_beam_energy(self, surface):
+    def _draw_beam_energy(self, surface, camera_x=0):
         if self.is_empty():
             return
         current = self.peek()
         if current not in BEAM_ELEMENTS or current not in self._beams:
             return
-        beam  = self._beams[current]
-        color = ELEMENTS[current]['color']
+        beam = self._beams[current]
+        color = ELEMENTS[current]["color"]
         bar_w, bar_h = 60, 8
-        bx = self.rect.centerx - bar_w // 2
+        bx = self.rect.centerx - round(camera_x) - bar_w // 2
         by = self.rect.bottom + 5
-        pg.draw.rect(surface, (40, 40, 40),    (bx - 1, by - 1, bar_w + 2, bar_h + 2))
+        pg.draw.rect(surface, (40, 40, 40), (bx - 1, by - 1, bar_w + 2, bar_h + 2))
         filled = int(bar_w * beam.energy_ratio)
         if filled > 0:
             pg.draw.rect(surface, color, (bx, by, filled, bar_h))
         pg.draw.rect(surface, (200, 200, 200), (bx, by, bar_w, bar_h), 1)
 
     # ---------------------------------------------------------------- draw
-    def draw(self, surface):
-        image_rect = self.image.get_rect(midbottom=self.rect.midbottom)
-        surface.blit(self.image, image_rect)
+    def draw(self, surface, camera_x=0):
+        if self.invulnerable and (pg.time.get_ticks() // 80) % 2:
+            return
+        image_rect = self.image.get_rect(
+            midbottom=(self.rect.centerx - round(camera_x), self.rect.bottom),
+        )
+        image = self.image
+        if pg.time.get_ticks() < self.hit_flash_until:
+            image = image.copy()
+            image.fill((255, 70, 70, 120), special_flags=pg.BLEND_RGBA_ADD)
+        surface.blit(image, image_rect)
         # 입에 문 원소 표시 (뱉기/공격 중에는 숨김)
-        if (self.held_element is not None
-                and self.spit_anim_idx < 0
-                and not self._in_attack()):
-            color = ELEMENTS[self.held_element]['color']
+        if (
+            self.held_element is not None
+            and self.spit_anim_idx < 0
+            and not self._in_attack()
+        ):
+            color = ELEMENTS[self.held_element]["color"]
             bx = self.rect.right + 4 if self.facing_right else self.rect.left - 4
-            r  = 10 + int(3 * abs(math.sin(pg.time.get_ticks() / 150)))
-            pg.draw.circle(surface, color,           (bx, self.rect.centery), r)
+            bx -= round(camera_x)
+            r = 10 + int(3 * abs(math.sin(pg.time.get_ticks() / 150)))
+            pg.draw.circle(surface, color, (bx, self.rect.centery), r)
             pg.draw.circle(surface, (255, 255, 255), (bx, self.rect.centery), r, 2)
 
-    def draw_inhale_effect(self, surface):
+    def draw_inhale_effect(self, surface, camera_x=0):
         if not self.inhaling:
             return
-        now     = pg.time.get_ticks()
+        now = pg.time.get_ticks()
         mouth_x = self.rect.right if self.facing_right else self.rect.left
         mouth_y = self.rect.centery
         for i in range(6):
-            t      = (now / 300 + i / 6) % 1.0
+            t = (now / 300 + i / 6) % 1.0
             spread = (1 - t) * 50
-            oy     = (i - 2.5) * (spread / 2.5)
-            px     = int(mouth_x + (1 - t) * self.inhale_range * (1 if self.facing_right else -1))
-            py     = int(mouth_y + oy)
-            r      = max(3, int(9 * (1 - t) + 3))
-            blue   = int(120 + 135 * t)
+            oy = (i - 2.5) * (spread / 2.5)
+            px = int(
+                mouth_x
+                - camera_x
+                + (1 - t) * self.inhale_range * (1 if self.facing_right else -1)
+            )
+            py = int(mouth_y + oy)
+            r = max(3, int(9 * (1 - t) + 3))
+            blue = int(120 + 135 * t)
             pg.draw.circle(surface, (30, 140, blue), (px, py), r)
 
     def draw_hud(self, surface, key=None):
         font = self.font
 
         if key is not None:
-            z_on  = key[KEYS['inhale']]
+            z_on = key[KEYS["inhale"]]
             color = (0, 180, 0) if z_on else (180, 0, 0)
-            dbg   = font.render(
-                f"Z키: {'ON' if z_on else 'OFF'}  inhaling: {self.inhaling}", True, color)
+            dbg = font.render(
+                f"Z키: {'ON' if z_on else 'OFF'}  inhaling: {self.inhaling}",
+                True,
+                color,
+            )
             surface.blit(dbg, (SCREEN_WIDTH - 220, 10))
 
         if self.held_element is not None:
-            el    = ELEMENTS[self.held_element]
+            el = ELEMENTS[self.held_element]
             guide = font.render(
                 f"[{el['label']} 입에 문 중]  X: 뱉기   ↓: 삼키기   SPACE: 점프",
-                True, el['color'])
+                True,
+                el["color"],
+            )
         else:
             guide = font.render(
                 "Z:흡입  X:뱉기  D연타:펀치 3단  F연타:킥 3단  V:빔  SPACE:점프",
-                True, (80, 80, 80))
+                True,
+                (80, 80, 80),
+            )
         surface.blit(guide, (10, SCREEN_HEIGHT - 30))
 
         attack = self._current_attack()
         if attack is not None:
             queued = (
-                f"  NEXT x{self.attack_queue_count}"
-                if self.attack_queue_count else ""
+                f"  NEXT x{self.attack_queue_count}" if self.attack_queue_count else ""
             )
             combo = font.render(
                 f"{attack['name']}  {self.attack_stage + 1}/3{queued}",
-                True, (190, 40, 40),
+                True,
+                (190, 40, 40),
             )
             surface.blit(combo, (10, 40))
 
         if not self.ability_stack:
             return
-        surface.blit(font.render("능력 스택 (오른쪽=현재):", True, (40, 40, 40)), (10, 10))
+        surface.blit(
+            font.render("능력 스택 (오른쪽=현재):", True, (40, 40, 40)), (10, 10)
+        )
         for i, element in enumerate(self.ability_stack):
-            el        = ELEMENTS[element]
-            is_active = (i == len(self.ability_stack) - 1)
-            cx, cy    = 220 + i * 50, 18
-            r         = 17 if is_active else 12
-            pg.draw.circle(surface, el['color'],       (cx, cy), r)
+            el = ELEMENTS[element]
+            is_active = i == len(self.ability_stack) - 1
+            cx, cy = 220 + i * 50, 18
+            r = 17 if is_active else 12
+            pg.draw.circle(surface, el["color"], (cx, cy), r)
             if is_active:
                 pg.draw.circle(surface, (255, 255, 255), (cx, cy), r, 2)
-            lbl = font.render(el['label'], True, (255, 255, 255))
+            lbl = font.render(el["label"], True, (255, 255, 255))
             surface.blit(lbl, lbl.get_rect(center=(cx, cy)))
