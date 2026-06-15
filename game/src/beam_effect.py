@@ -8,6 +8,7 @@ BEAM_ELEMENTS   = {'fire', 'water', 'electric', 'earth'}
 
 # 에너지 회복 속도 (프레임당)
 _REGEN = 0.8
+_ELEMENT_FRAME_MS = 70
 
 # ─── FireBeam: 스프라이트 기반 방향성 불 빔 ──────────────────────
 
@@ -37,6 +38,30 @@ def _load_fire_frames(direction):
     return frames
 
 
+def _scale_to_fit(image, max_size):
+    scale = min(max_size[0] / image.get_width(), max_size[1] / image.get_height())
+    size = (
+        max(1, round(image.get_width() * scale)),
+        max(1, round(image.get_height() * scale)),
+    )
+    return pg.transform.scale(image, size)
+
+
+def _load_element_frames(element):
+    image_root = os.path.join('src', 'assets', 'images')
+    if element == 'water':
+        return []
+    if element == 'electric':
+        return [
+            pg.transform.scale(
+                pg.image.load(os.path.join(image_root, f'spark{i}.png')).convert_alpha(),
+                (28, 28),
+            )
+            for i in range(1, 4)
+        ]
+    return []
+
+
 class FireBeam:
     """스프라이트 기반 방향성 불 빔. BeamEffect와 동일한 인터페이스."""
 
@@ -49,6 +74,7 @@ class FireBeam:
         self._frame_i  = 0
         self._kr       = None   # 커비 rect (update마다 갱신)
         self._facing   = True
+        self._mouth    = (0, 0)
 
     def try_activate(self, direction='horizontal'):
         if self.energy > 0:
@@ -67,6 +93,7 @@ class FireBeam:
         return self.energy / BEAM_MAX_ENERGY
 
     def update(self, mouth_x, mouth_y, facing_right, kirby_rect=None, **_):
+        self._mouth = (mouth_x, mouth_y)
         if self.active:
             self.energy -= 1
             if self.energy <= 0:
@@ -90,29 +117,29 @@ class FireBeam:
         if not self.active or self._kr is None:
             return
         raw = self._frames[self.direction][self._frame_i]
-        kr  = self._kr
         fr  = self._facing
+        mx, my = self._mouth
 
         if self.direction == 'horizontal':
             img  = raw if fr else pg.transform.flip(raw, True, False)
             rect = img.get_rect()
             if fr:
-                rect.midleft  = (kr.right, kr.centery)
+                rect.midleft  = (mx, my)
             else:
-                rect.midright = (kr.left,  kr.centery)
+                rect.midright = (mx, my)
 
         elif self.direction == 'vertical':
             img  = raw
             rect = img.get_rect()
-            rect.midbottom = (kr.centerx, kr.top + 4)
+            rect.midbottom = (mx, my)
 
         else:   # diagonal — 아래 대각선
             img  = raw if fr else pg.transform.flip(raw, True, False)
             rect = img.get_rect()
             if fr:
-                rect.topleft  = (kr.right, kr.centery + 4)
+                rect.topleft  = (mx, my)
             else:
-                rect.topright = (kr.left,  kr.centery + 4)
+                rect.topright = (mx, my)
 
         surface.blit(img, rect)
 
@@ -146,6 +173,20 @@ class BeamEffect:
         self.particles = []
         self.energy    = BEAM_MAX_ENERGY
         self.active    = False
+        self._frames   = _load_element_frames(element)
+        self._frame_i  = 0
+        self._frame_t  = 0.0
+        self._mouth    = (0, 0)
+        self._facing   = True
+        self._water_splash = (
+            pg.image.load(
+                os.path.join(
+                    'src', 'assets', 'images', '07_kirby_collection', 'frame_259.png',
+                )
+            ).convert_alpha()
+            if element == 'water'
+            else None
+        )
 
     def try_activate(self):
         if self.energy > 0:
@@ -161,6 +202,9 @@ class BeamEffect:
         return self.energy / BEAM_MAX_ENERGY
 
     def update(self, mouth_x, mouth_y, facing_right, **_):
+        self._mouth = (mouth_x, mouth_y)
+        self._facing = facing_right
+
         if self.active:
             self.energy -= 1
             if self.energy <= 0:
@@ -177,9 +221,17 @@ class BeamEffect:
             p.update()
         self.particles = [p for p in self.particles if not p.dead]
 
+        if self.active and self._frames:
+            self._frame_t += 1000 / 60
+            if self._frame_t >= _ELEMENT_FRAME_MS:
+                self._frame_t -= _ELEMENT_FRAME_MS
+                self._frame_i = (self._frame_i + 1) % len(self._frames)
+
     def draw(self, surface):
-        if not self.particles:
+        has_sprite_effect = self.active and (self._frames or self._water_splash is not None)
+        if not self.particles and not has_sprite_effect:
             return
+
         overlay = pg.Surface(surface.get_size(), pg.SRCALPHA)
         for p in self.particles:
             ratio = p.life / p.max_life
@@ -197,20 +249,43 @@ class BeamEffect:
         flags = pg.BLEND_RGBA_ADD if self.element in ('fire', 'electric') else 0
         surface.blit(overlay, (0, 0), special_flags=flags)
 
+        if has_sprite_effect:
+            self._draw_sprite_effect(surface)
+
+    def _draw_sprite_effect(self, surface):
+        mx, my = self._mouth
+        direction = 1 if self._facing else -1
+
+        if self.element == 'water':
+            splash = self._water_splash
+            if not self._facing:
+                splash = pg.transform.flip(splash, True, False)
+            splash_x = mx + direction * 43
+            surface.blit(splash, splash.get_rect(center=(splash_x, my)))
+            return
+
+        if self.element == 'electric':
+            for i, distance in enumerate((12, 40, 68)):
+                image = self._frames[(self._frame_i + i) % len(self._frames)]
+                rect = image.get_rect(center=(mx + direction * distance, my))
+                surface.blit(image, rect)
+
 
 # ─── 속성별 파티클 스포너 ──────────────────────────────────────
 
 def _spawn_water(particles, mx, my, facing_right):
     d = 1 if facing_right else -1
-    for _ in range(5):
-        speed = random.uniform(6, 10)
+    for _ in range(3):
+        speed = random.uniform(5, 8)
         angle = random.uniform(-0.25, 0.25)
         dx    = d * speed * math.cos(angle)
-        dy    = speed * math.sin(angle) - random.uniform(0.0, 1.5)
+        dy    = speed * math.sin(angle) - random.uniform(0.0, 0.8)
         color = (random.randint(80, 160), random.randint(180, 230), 255)
-        size  = random.uniform(8, 16)
-        life  = random.randint(18, 30)
-        particles.append(Particle(mx, my, dx, dy, color, size, life, gravity=0.28))
+        size  = random.uniform(3, 7)
+        life  = random.randint(12, 20)
+        particles.append(
+            Particle(mx + d * 24, my, dx, dy, color, size, life, gravity=0.18)
+        )
 
 
 def _spawn_electric(particles, mx, my, facing_right):

@@ -41,6 +41,7 @@ def main():
         clock.tick(FPS)
 
         jump_pressed = spit_pressed = attack_pressed = gulp_pressed = False
+        punch_pressed = kick_pressed = False
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
@@ -50,9 +51,14 @@ def main():
                 if key_const == KEYS['spit']:   spit_pressed   = True
                 if key_const == KEYS['attack']: attack_pressed = True
                 if key_const == KEYS['gulp']:   gulp_pressed   = True
+                if key_const == pg.K_d:         punch_pressed  = True
+                if key_const == pg.K_f:         kick_pressed   = True
 
         key = pg.key.get_pressed()
-        player.update(key, jump_pressed, spit_pressed, attack_pressed, enemies, gulp_pressed)
+        player.update(
+            key, jump_pressed, spit_pressed, attack_pressed, enemies, gulp_pressed,
+            punch_pressed=punch_pressed, kick_pressed=kick_pressed,
+        )
 
         for proj_data in player.pending_projectiles:
             projectiles.add(Projectile(**proj_data))
@@ -78,6 +84,14 @@ def main():
                 if beam_rect.colliderect(enemy.rect) and not enemy.being_inhaled:
                     enemies.remove(enemy)
                     player.beam_kill_cd = 20
+                    break
+
+        # D/F 콤보의 현재 타격 프레임이 적에 닿으면 적 제거
+        melee_rect = player.melee_hit_rect
+        if melee_rect:
+            for enemy in list(enemies):
+                if melee_rect.colliderect(enemy.rect) and not enemy.being_inhaled:
+                    enemies.remove(enemy)
                     break
 
         # Draw
