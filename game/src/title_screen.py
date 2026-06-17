@@ -1,107 +1,83 @@
+"""게임 시작 전 타이틀 메뉴와 조작 방법 화면을 담당한다."""
+
 from enum import Enum
 
 import pygame as pg
 
 import load
 from src.constants import FPS, SCREEN_HEIGHT, SCREEN_WIDTH
+from src.game_input import read_frame_input
 
 
 class TitleAction(Enum):
+    """타이틀 화면에서 game_app.py로 돌려줄 사용자의 선택."""
+
     START = "start"
     INSTRUCTIONS = "instructions"
     QUIT = "quit"
-
-
-class TitleButton(pg.sprite.Sprite):
-    def __init__(self, rect, action):
-        super().__init__()
-        self.image = pg.Surface(rect.size, pg.SRCALPHA)
-        self.rect = rect
-        self.action = action
-        self.mouse_over = False
-
-    def update(self, mouse_pos, mouse_up):
-        self.mouse_over = self.rect.collidepoint(mouse_pos)
-        if self.mouse_over and mouse_up:
-            return self.action
-        return None
+    SETTINGS = "settings"
 
 
 class TitleMenu:
+    """선택 인덱스와 타이틀 배경 이미지를 보관하는 메뉴 객체."""
+
     def __init__(self):
+        # selected_index는 START/INSTRUCTIONS/QUIT 중 현재 선택된 항목 위치이다.
         self.selected_index = 0
+        self.actions = (
+            TitleAction.START,
+            TitleAction.INSTRUCTIONS,
+            TitleAction.QUIT,
+        )
         self.backgrounds = [
             _load_cover("menu1.png"),
             _load_cover("menu2.png"),
             _load_cover("menu3.png"),
         ]
-        self.buttons = pg.sprite.RenderUpdates(
-            TitleButton(_menu_rect(0, 134, 244, 51), TitleAction.START),
-            TitleButton(_menu_rect(0, 185, 244, 51), TitleAction.INSTRUCTIONS),
-            TitleButton(_menu_rect(0, 236, 244, 51), TitleAction.QUIT),
-        )
         self.help_font = load.get_korean_font(18)
 
-    def handle_key(self, event):
-        if event.type != pg.KEYDOWN:
-            return None
-        if event.key in (pg.K_UP, pg.K_w):
-            self.selected_index = (self.selected_index - 1) % len(self.buttons)
-        elif event.key in (pg.K_DOWN, pg.K_s):
-            self.selected_index = (self.selected_index + 1) % len(self.buttons)
-        elif event.key in (pg.K_RETURN, pg.K_KP_ENTER, pg.K_SPACE):
-            return self._selected_button().action
-        elif event.key == pg.K_ESCAPE:
+    def update(self, actions):
+        """입력 상태를 받아 메뉴 선택을 바꾸거나 선택 결과를 반환한다."""
+        if actions.title_quit_pressed:
             return TitleAction.QUIT
-        return None
-
-    def update(self, mouse_pos, mouse_up):
-        for index, button in enumerate(self.buttons):
-            action = button.update(mouse_pos, mouse_up)
-            if button.mouse_over:
-                self.selected_index = index
-            if action is not None:
-                return action
+        if actions.settings_pressed:
+            return TitleAction.SETTINGS
+        if actions.up_pressed:
+            self.selected_index = (self.selected_index - 1) % len(self.actions)
+        if actions.down_pressed:
+            self.selected_index = (self.selected_index + 1) % len(self.actions)
+        if actions.confirm_pressed:
+            return self.actions[self.selected_index]
         return None
 
     def draw(self, surface):
+        """현재 선택된 메뉴에 맞는 배경과 하단 조작 안내를 그린다."""
         surface.blit(self.backgrounds[self.selected_index], (0, 0))
-        guide_text = "↑ ↓ / 마우스 선택    ENTER / 클릭 결정    ESC 종료"
+        guide_text = "↑ ↓ 선택    ENTER 결정    ESC 설정    Q 종료"
         guide_shadow = self.help_font.render(guide_text, True, (20, 20, 28))
         guide = self.help_font.render(guide_text, True, (255, 255, 255))
         guide_rect = guide.get_rect(center=(SCREEN_WIDTH // 2, 565))
         surface.blit(guide_shadow, guide_rect.move(2, 2))
         surface.blit(guide, guide_rect)
 
-    def _selected_button(self):
-        return self.buttons.sprites()[self.selected_index]
-
 
 def show_title_screen(screen, clock):
+    """사용자가 시작/조작 방법/종료 중 하나를 고를 때까지 타이틀 화면을 반복한다."""
     menu = TitleMenu()
     while True:
         clock.tick(FPS)
-        mouse_up = False
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                return TitleAction.QUIT
-            if event.type == pg.MOUSEBUTTONUP and event.button == 1:
-                mouse_up = True
-            action = menu.handle_key(event)
-            if action is not None:
-                if action == TitleAction.INSTRUCTIONS:
-                    instruction_action = show_instructions(screen, clock)
-                    if instruction_action == TitleAction.QUIT:
-                        return TitleAction.QUIT
-                    continue
-                return action
-
-        action = menu.update(pg.mouse.get_pos(), mouse_up)
+        actions = read_frame_input()
+        if actions.quit_requested:
+            return TitleAction.QUIT
+        action = menu.update(actions)
         if action is not None:
             if action == TitleAction.INSTRUCTIONS:
+                # 조작 방법 화면에서 돌아오면 타이틀 화면을 계속 보여준다.
                 instruction_action = show_instructions(screen, clock)
                 if instruction_action == TitleAction.QUIT:
                     return TitleAction.QUIT
+                if instruction_action == TitleAction.SETTINGS:
+                    return TitleAction.SETTINGS
                 continue
             return action
 
@@ -110,6 +86,7 @@ def show_title_screen(screen, clock):
 
 
 def show_instructions(screen, clock):
+    """조작 방법 안내 화면을 그리고, ENTER를 누르면 타이틀로 돌아간다."""
     background = _load_cover("menu2.png")
     title_font = load.get_korean_font(34)
     line_font = load.get_korean_font(21)
@@ -129,25 +106,22 @@ def show_instructions(screen, clock):
 
     while True:
         clock.tick(FPS)
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                return TitleAction.QUIT
-            if event.type == pg.MOUSEBUTTONUP and event.button == 1:
-                return None
-            if event.type == pg.KEYDOWN and event.key in (
-                pg.K_ESCAPE,
-                pg.K_RETURN,
-                pg.K_KP_ENTER,
-                pg.K_SPACE,
-            ):
-                return None
+        actions = read_frame_input()
+        if actions.quit_requested or actions.title_quit_pressed:
+            return TitleAction.QUIT
+        if actions.settings_pressed:
+            return TitleAction.SETTINGS
+        if actions.confirm_pressed:
+            return None
 
+        # 배경 위에 어두운 반투명 막을 깔아 안내 글자가 잘 보이게 한다.
         screen.blit(background, (0, 0))
         shade = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pg.SRCALPHA)
         shade.fill((0, 0, 0, 92))
         screen.blit(shade, (0, 0))
 
         panel = pg.Rect(130, 62, 540, 468)
+        # 조작 목록이 들어갈 흰색 안내 패널을 그린다.
         pg.draw.rect(screen, (255, 255, 250), panel, border_radius=18)
         pg.draw.rect(screen, (190, 24, 42), panel, width=6, border_radius=18)
 
@@ -159,7 +133,7 @@ def show_instructions(screen, clock):
             screen.blit(text, text.get_rect(topleft=(188, 158 + index * 32)))
 
         footer = small_font.render(
-            "클릭 / ENTER / ESC 로 메뉴로 돌아가기",
+            "ENTER 로 메뉴로 돌아가기    ESC 설정    Q 종료",
             True,
             (110, 30, 45),
         )
@@ -168,6 +142,7 @@ def show_instructions(screen, clock):
 
 
 def _load_cover(filename):
+    """메뉴 이미지를 화면을 꽉 채우는 배경으로 변환한다."""
     image = load.load_image(filename).convert()
     width, height = image.get_size()
     scale = max(SCREEN_WIDTH / width, SCREEN_HEIGHT / height)
@@ -178,10 +153,3 @@ def _load_cover(filename):
     surface = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
     surface.blit(image, (x, y))
     return surface
-
-
-def _menu_rect(x, y, width, height):
-    scale = max(SCREEN_WIDTH / 600, SCREEN_HEIGHT / 400)
-    left = round(x * scale + (SCREEN_WIDTH - 600 * scale) / 2)
-    top = round(y * scale + (SCREEN_HEIGHT - 400 * scale) / 2)
-    return pg.Rect(left, top, round(width * scale), round(height * scale))

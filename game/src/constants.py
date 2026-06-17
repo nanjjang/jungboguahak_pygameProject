@@ -1,10 +1,12 @@
-import pygame as pg
+"""게임 전체에서 공유하는 화면 크기, 난이도, 속성, 적 능력치 설정."""
 
+# 기본 창 크기와 초당 프레임 수이다.
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 600
 FPS = 60
 
 # 속성별 데이터 단일 출처 — 색/라벨/발사체/적 설정 모두 여기서
+# Kirby가 능력을 쓰거나 적을 만들 때 같은 설정을 공유하기 위해 한곳에 둔다.
 ELEMENTS = {
     "fire": {
         "color": (255, 80, 0),
@@ -54,6 +56,7 @@ ELEMENTS = {
 }
 
 # 난이도별 AI 반응성, 능력치, 생성 수 조절
+# speed/hp/damage 배율과 인식 거리, 공격 쿨타임 등이 여기서 정해진다.
 DIFFICULTY_SETTINGS = {
     "easy": {
         "label": "EASY",
@@ -94,6 +97,7 @@ DIFFICULTY_SETTINGS = {
 }
 
 # 적 종류별 스프라이트·AI·전투 설정
+# create_enemy()가 이 데이터를 읽어 속성별 적을 만든다.
 ENEMY_DATA = {
     "fire": {
         "frames": [f"flame{i}.png" for i in range(1, 13)],
@@ -143,13 +147,4 @@ ENEMY_DATA = {
         "detect_y": 95,
         "cooldown": 1750,
     },
-}
-
-# 키 바인딩 단일 출처 — 여기만 바꾸면 전체 반영
-KEYS = {
-    "jump": pg.K_SPACE,
-    "inhale": pg.K_z,
-    "spit": pg.K_x,
-    "attack": pg.K_v,
-    "gulp": pg.K_DOWN,
 }

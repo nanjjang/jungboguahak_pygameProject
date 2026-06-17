@@ -1,7 +1,9 @@
+"""플레이어 캐릭터 Kirby의 이동, 공격, 흡입, 능력, 애니메이션을 담당한다."""
+
 import pygame as pg
 import load
 
-from src.constants import ELEMENTS, KEYS, SCREEN_WIDTH, SCREEN_HEIGHT
+from src.constants import ELEMENTS, SCREEN_WIDTH, SCREEN_HEIGHT
 from src.beam_effect import BEAM_ELEMENTS, BeamEffect, FireBeam
 
 _BODY_SIZE = (26, 26)
@@ -9,7 +11,7 @@ _SPRITE_SIZE = (42, 36)
 
 
 def _sprite(name, authored_left=False, canvas_size=_SPRITE_SIZE, angle=0):
-    """Load one sprite without stretching its pixel-art proportions."""
+    """픽셀아트 비율을 유지한 채 한 장의 스프라이트를 공통 캔버스에 올린다."""
     image = load.load_image(name)
     if authored_left:
         image = pg.transform.flip(image, True, False)
@@ -33,16 +35,17 @@ def _sprite(name, authored_left=False, canvas_size=_SPRITE_SIZE, angle=0):
 
 
 def _c7(i):
-    """07 collection frames are authored facing left; normalize to right."""
+    """왼쪽을 보고 있는 07 컬렉션 프레임을 오른쪽 기준으로 뒤집어 불러온다."""
     return _sprite(f"07_kirby_collection/frame_{i:03d}.png", authored_left=True)
 
 
 def _basic_frames(*indices):
+    """기본 Kirby 프레임 여러 장을 한 번에 불러온다."""
     return [_sprite(f"03_basic_kirby/frame_{i:03d}.png") for i in indices]
 
 
 def _water_shot_frame(index):
-    """Align the body in the wide water-shot frames to Kirby's collision body."""
+    """넓은 물 발사 프레임에서 Kirby 몸통 위치가 충돌 박스와 맞도록 정렬한다."""
     image = load.load_image(f"07_kirby_collection/frame_{index:03d}.png")
     canvas = pg.Surface((70, 42), pg.SRCALPHA)
     body_center_x = 10 if index != 258 else image.get_width() // 2
@@ -52,6 +55,8 @@ def _water_shot_frame(index):
 
 
 class Kirby(pg.sprite.Sprite):
+    """사용자가 조작하는 플레이어 캐릭터."""
+
     def __init__(self, x, y):
         pg.sprite.Sprite.__init__(self)
         self._load_frames()
@@ -59,28 +64,34 @@ class Kirby(pg.sprite.Sprite):
 
     # ---------------------------------------------------------------- stack
     def is_empty(self):
+        """능력 스택이 비어 있으면 True이다."""
         return not self.ability_stack
 
     def push(self, element):
+        """새 능력을 스택 맨 위에 올린다."""
         self.ability_stack.append(element)
 
     def pop(self):
+        """현재 사용 중인 능력을 스택에서 꺼낸다."""
         if self.is_empty():
             return "스택이 비어있음"
         return self.ability_stack.pop()
 
     def pop_same_ability(self, element):
+        """이미 있는 같은 능력을 제거해 중복 저장을 막는다."""
         if self.is_empty():
             return "스택이 비어있음"
         return self.ability_stack.remove(element)
 
     def peek(self):
+        """현재 사용할 능력, 즉 스택 맨 위 능력을 확인한다."""
         if self.is_empty():
             return "스택이 비어있음"
         return self.ability_stack[-1]
 
     # ---------------------------------------------------------------- load
     def _load_frames(self):
+        """Kirby의 모든 상태별 애니메이션 프레임을 미리 불러온다."""
         # Keep normal movement and melee in the same basic Kirby sprite set.
         self.idle_frames = _basic_frames(1)
         self.move_frames = _basic_frames(*range(15, 23))
@@ -99,6 +110,7 @@ class Kirby(pg.sprite.Sprite):
         self.spit_frames = [_c7(i) for i in (107, 104, 108, 109)]
         breath_horizontal = _basic_frames(3, 49, 49, 3)
         self.element_forms = {
+            # 일부 능력은 장착 중 Kirby의 기본 모습 자체가 달라진다.
             "water": {
                 "idle": _sprite("07_kirby_collection/frame_337.png"),
                 "move": [
@@ -110,6 +122,7 @@ class Kirby(pg.sprite.Sprite):
             },
         }
         self.ability_frames = {
+            # 빔 사용 중 입 모양/자세 애니메이션이다.
             "fire": {
                 "horizontal": breath_horizontal,
                 "vertical": [
@@ -211,6 +224,7 @@ class Kirby(pg.sprite.Sprite):
 
     # ---------------------------------------------------------------- init
     def _init_state(self, x, y):
+        """게임 시작 또는 Kirby 생성 시 필요한 모든 상태값을 초기화한다."""
         self.image = self.idle_frames[0]
         self.rect = pg.Rect(x, y, *_BODY_SIZE)
         self.y_float = float(y)
@@ -287,7 +301,7 @@ class Kirby(pg.sprite.Sprite):
     # ---------------------------------------------------------------- update
     def update(
         self,
-        key,
+        controls,
         enemies=None,
         *,
         spit_pressed=False,
@@ -295,20 +309,20 @@ class Kirby(pg.sprite.Sprite):
         punch_pressed=False,
         kick_pressed=False,
     ):
+        """한 프레임 동안 Kirby 입력, 이동, 공격, 애니메이션을 모두 갱신한다."""
         # 흡입: 입에 문 상태이거나 공격 중이면 불가
         self.inhaling = (
-            bool(key[KEYS["inhale"]])
+            controls.inhale_held
             and self.held_element is None
             and not self._in_attack()
         )
 
-        self.jump_held = bool(key[KEYS["jump"]])
-        shift = bool(key[pg.K_LSHIFT] or key[pg.K_RSHIFT])
-        self.hover_held = self.jump_held and shift
+        self.jump_held = controls.jump_held
+        self.hover_held = self.jump_held and controls.hover_modifier_held
 
         # D / F 키 엣지 감지 (근접 공격)
-        d_held = bool(key[pg.K_d])
-        f_held = bool(key[pg.K_f])
+        d_held = controls.punch_held
+        f_held = controls.kick_held
         just_punch = punch_pressed or (d_held and not self._prev_d_held)
         just_kick = kick_pressed or (f_held and not self._prev_f_held)
         self._prev_d_held = d_held
@@ -323,30 +337,35 @@ class Kirby(pg.sprite.Sprite):
             self._on_attack("kick")
 
         self._handle_inhale(enemies)
+        # 단발 입력은 update 바깥에서 FrameInput으로 감지해 여기서 행동으로 바꾼다.
         if spit_pressed and not self._in_attack():
             self._on_spit()
         if gulp_pressed:
             self._on_gulp()
-        self._update_beams(bool(key[KEYS["attack"]]), key)
-        moving = self._move(key)
+        self._update_beams(controls.beam_held, controls)
+        moving = self._move(controls)
         self._apply_gravity(self.jump_held, self.hover_held)
         self._update_image(moving)
 
     # ---------------------------------------------------------------- helpers
     def _in_attack(self):
+        """현재 펀치/킥 콤보 중이면 True이다."""
         return self.attack_kind is not None
 
     def _current_attack(self):
+        """현재 콤보 단계 설정 딕셔너리를 반환한다."""
         if not self._in_attack():
             return None
         return self.attack_combos[self.attack_kind][self.attack_stage]
 
     # ---------------------------------------------------------------- inhale
     def _get_inhale_rect(self):
+        """Kirby 앞쪽에 흡입 판정 사각형을 만든다."""
         x = self.rect.right if self.facing_right else self.rect.left - self.inhale_range
         return pg.Rect(x, self.rect.centery - 35, self.inhale_range, 70)
 
     def _handle_inhale(self, enemies):
+        """흡입 범위 안의 적을 끌어오고, Kirby와 닿으면 입에 문 상태로 만든다."""
         if enemies is None:
             return
         zone = self._get_inhale_rect()
@@ -363,6 +382,7 @@ class Kirby(pg.sprite.Sprite):
                 enemy.being_inhaled = False
 
             if enemy.being_inhaled and self.rect.colliderect(enemy.rect):
+                # 적과 Kirby가 겹치면 해당 적의 속성을 입에 문다.
                 self.held_element = enemy.element
                 self.inhaling = False
                 self.held_anim_idx = 0
@@ -381,11 +401,13 @@ class Kirby(pg.sprite.Sprite):
         self._shoot("star")
 
     def _on_gulp(self):
+        """입에 문 속성을 삼켜 능력 스택에 추가한다."""
         if self.held_element is not None:
             self._push_ability(self.held_element)
             self.held_element = None
 
     def _on_attack(self, kind):
+        """펀치/킥 입력을 현재 콤보 상태에 맞춰 시작하거나 예약한다."""
         if not self._in_attack():
             now = pg.time.get_ticks()
             stage = (
@@ -402,6 +424,7 @@ class Kirby(pg.sprite.Sprite):
             self.attack_queue_count += 1
 
     def _start_attack(self, kind, stage, queue_count=0):
+        """지정한 종류와 단계의 근접 공격 애니메이션을 시작한다."""
         self.attack_kind = kind
         self.attack_stage = stage
         self.attack_frame_idx = 0
@@ -414,6 +437,7 @@ class Kirby(pg.sprite.Sprite):
         self._apply_attack_motion(0)
 
     def _finish_attack(self):
+        """현재 공격을 끝내고, 짧은 시간 안에 다음 콤보로 이어갈 수 있게 준비한다."""
         kind = self.attack_kind
         next_stage = self.attack_stage + 1
         self.attack_kind = None
@@ -431,20 +455,23 @@ class Kirby(pg.sprite.Sprite):
 
     # ---------------------------------------------------------------- beam
     def _get_beam(self, element):
+        """속성에 맞는 빔 객체를 가져오고, 없으면 새로 만든다."""
         if element not in self._beams:
             self._beams[element] = (
                 FireBeam() if element == "fire" else BeamEffect(element)
             )
         return self._beams[element]
 
-    def _get_fire_direction(self, key):
-        if key[pg.K_UP]:
+    def _get_fire_direction(self, controls):
+        """불 능력은 방향키 상태에 따라 수평/수직/대각선 빔을 선택한다."""
+        if controls.up_held:
             return "vertical"
-        if key[pg.K_DOWN] and self.is_jumping:
+        if controls.down_held and self.is_jumping:
             return "diagonal"
         return "horizontal"
 
-    def _update_beams(self, attack_held, key=None):
+    def _update_beams(self, attack_held, controls=None):
+        """능력 빔의 활성화, 비활성화, 위치, 에너지 상태를 갱신한다."""
         if self.is_empty() or self.held_element is not None or self._in_attack():
             for beam in self._beams.values():
                 beam.deactivate()
@@ -453,14 +480,15 @@ class Kirby(pg.sprite.Sprite):
             if current in BEAM_ELEMENTS:
                 beam = self._get_beam(current)
                 if attack_held:
-                    if current == "fire" and key is not None:
-                        beam.try_activate(self._get_fire_direction(key))
+                    if current == "fire" and controls is not None:
+                        beam.try_activate(self._get_fire_direction(controls))
                     else:
                         beam.try_activate()
                 else:
                     beam.deactivate()
 
         for el, beam in self._beams.items():
+            # 빔은 Kirby 입 위치를 기준으로 매 프레임 새 위치를 받는다.
             direction = getattr(beam, "direction", "horizontal")
             mouth_x, mouth_y = self._beam_mouth_position(direction)
             if el == "fire":
@@ -472,6 +500,7 @@ class Kirby(pg.sprite.Sprite):
             self.beam_kill_cd -= 1
 
     def _active_beam_state(self):
+        """현재 켜져 있는 빔이 있으면 애니메이션에 필요한 상태를 반환한다."""
         if self.is_empty() or self.held_element is not None:
             return None
         current = self.peek()
@@ -481,12 +510,14 @@ class Kirby(pg.sprite.Sprite):
         return current, getattr(beam, "direction", "horizontal")
 
     def _equipped_form(self):
+        """장착만 해도 모습이 달라지는 능력이 현재 능력인지 확인한다."""
         if self.is_empty() or self.held_element is not None:
             return None
         current = self.peek()
         return current if current in self.element_forms else None
 
     def _beam_mouth_position(self, direction):
+        """빔 방향별로 Kirby 입 위치 좌표를 계산한다."""
         if direction == "vertical":
             x_offset = 6 if self.facing_right else -6
             return self.rect.centerx + x_offset, self.rect.top - 10
@@ -520,7 +551,7 @@ class Kirby(pg.sprite.Sprite):
 
     @property
     def melee_hit_rect(self):
-        """Current combo stage hitbox, active only on impact frames."""
+        """현재 콤보 단계가 타격 프레임일 때만 근접 공격 히트박스를 반환한다."""
         attack = self._current_attack()
         if attack is None or self.attack_frame_idx not in attack["hit_frames"]:
             return None
@@ -532,6 +563,7 @@ class Kirby(pg.sprite.Sprite):
 
     @property
     def melee_damage(self):
+        """현재 근접 공격이 실제로 맞는 프레임이면 데미지를 반환한다."""
         attack = self._current_attack()
         if attack is None or self.attack_frame_idx not in attack["hit_frames"]:
             return 0
@@ -539,6 +571,7 @@ class Kirby(pg.sprite.Sprite):
 
     @property
     def beam_damage(self):
+        """현재 장착 능력의 빔 데미지를 반환한다."""
         if self.is_empty():
             return 0
         return {
@@ -550,11 +583,13 @@ class Kirby(pg.sprite.Sprite):
 
     # ---------------------------------------------------------------- ability
     def _push_ability(self, element):
+        """같은 능력은 중복으로 쌓지 않고 맨 위로 올린다."""
         if element in self.ability_stack:
             self.pop_same_ability(element)
         self.push(element)
 
     def _shoot(self, element):
+        """Projectile 생성을 위한 정보를 pending_projectiles에 임시 저장한다."""
         x = self.rect.right if self.facing_right else self.rect.left
         self.pending_projectiles.append(
             {
@@ -568,16 +603,20 @@ class Kirby(pg.sprite.Sprite):
     # ---------------------------------------------------------------- health
     @property
     def invulnerable(self):
+        """현재 무적 시간이 남아 있으면 True이다."""
         return pg.time.get_ticks() < self.invulnerable_until
 
     def set_spawn_point(self, x, y):
+        """죽거나 다음 스테이지로 갈 때 돌아올 시작 위치를 정한다."""
         self.spawn_point = (x, y)
 
     def set_world_bounds(self, width):
+        """현재 스테이지 가로 길이에 맞춰 Kirby 이동 범위를 정한다."""
         self.world_width = max(SCREEN_WIDTH, int(width))
         self.rect.x = min(self.rect.x, self.world_width - self.rect.width)
 
     def reset_position(self):
+        """Kirby를 스폰 위치로 되돌리고 이동/공격 상태를 초기화한다."""
         self.rect.topleft = self.spawn_point
         self.y_float = float(self.rect.y)
         self.velocity_y = 0.0
@@ -592,6 +631,7 @@ class Kirby(pg.sprite.Sprite):
             beam.deactivate()
 
     def take_damage(self, amount, source_x=None):
+        """플레이어가 피해를 입었을 때 체력, 목숨, 무적 시간을 처리한다."""
         if self.game_over or self.invulnerable:
             return 0
         dealt = min(self.hp, max(1, round(amount)))
@@ -601,6 +641,7 @@ class Kirby(pg.sprite.Sprite):
         self.invulnerable_until = now + 900
 
         if source_x is not None:
+            # 맞은 위치 반대 방향으로 살짝 밀려나는 넉백을 준다.
             direction = 1 if self.rect.centerx >= source_x else -1
             self.rect.x = max(
                 0,
@@ -610,6 +651,7 @@ class Kirby(pg.sprite.Sprite):
         self.is_jumping = True
 
         if self.hp <= 0:
+            # 체력이 0이 되면 목숨을 줄이고, 남은 목숨이 있으면 재배치한다.
             self.lives -= 1
             if self.lives > 0:
                 self.hp = self.max_hp
@@ -626,6 +668,7 @@ class Kirby(pg.sprite.Sprite):
 
     # ---------------------------------------------------------------- animation ticks
     def _tick_inhale_anim(self):
+        """흡입 중 입 모양 애니메이션 프레임을 시간에 맞춰 넘긴다."""
         now = pg.time.get_ticks()
         if now - self.inhale_anim_t >= self.inhale_anim_ms:
             self.inhale_anim_t = now
@@ -633,6 +676,7 @@ class Kirby(pg.sprite.Sprite):
         return self.inhale_frames[self.inhale_anim_idx]
 
     def _tick_held_anim(self, moving):
+        """적을 입에 문 상태의 대기/이동 애니메이션 프레임을 고른다."""
         if not moving:
             return self.held_idle
         now = pg.time.get_ticks()
@@ -642,10 +686,12 @@ class Kirby(pg.sprite.Sprite):
         return self.held_frames[self.held_anim_idx]
 
     def _tick_ability_anim(self, element, direction):
+        """능력 빔을 쓰는 동안 속성/방향별 자세 애니메이션을 넘긴다."""
         frame_sets = self.ability_frames[element]
         direction = direction if direction in frame_sets else "horizontal"
         anim_key = (element, direction)
         if self.ability_anim_key != anim_key:
+            # 속성이나 방향이 바뀌면 이전 애니메이션 진행 상태를 초기화한다.
             self.ability_anim_key = anim_key
             self.ability_anim_idx = 0
             self.ability_anim_t = pg.time.get_ticks()
@@ -658,6 +704,7 @@ class Kirby(pg.sprite.Sprite):
         return frames[self.ability_anim_idx]
 
     def _tick_spit_anim(self):
+        """뱉기 애니메이션을 한 번 재생하고 끝나면 비활성화한다."""
         if self.spit_anim_idx < 0:
             return
         now = pg.time.get_ticks()
@@ -668,6 +715,7 @@ class Kirby(pg.sprite.Sprite):
                 self.spit_anim_idx = -1
 
     def _tick_attack_anim(self):
+        """근접 공격 프레임을 진행하고, 예약된 콤보가 있으면 다음 단계로 넘어간다."""
         attack = self._current_attack()
         if attack is None:
             return
@@ -686,6 +734,7 @@ class Kirby(pg.sprite.Sprite):
             self.attack_queue_count > 0
             and self.attack_stage < len(self.attack_combos[self.attack_kind]) - 1
         ):
+            # 공격 중 같은 키를 누르면 다음 콤보 단계가 예약된다.
             kind = self.attack_kind
             self._start_attack(
                 kind,
@@ -696,6 +745,7 @@ class Kirby(pg.sprite.Sprite):
             self._finish_attack()
 
     def _apply_attack_motion(self, frame_idx):
+        """공격 프레임별 전진 값을 적용해 타격감 있는 이동을 만든다."""
         attack = self._current_attack()
         if attack is None:
             return
@@ -709,16 +759,17 @@ class Kirby(pg.sprite.Sprite):
         )
 
     # ---------------------------------------------------------------- movement
-    def _move(self, key):
+    def _move(self, controls):
+        """좌우 이동 입력을 적용하고, 실제로 움직였는지 반환한다."""
         if self._in_attack():
             return False
 
         moving = False
-        if key[pg.K_LEFT]:
+        if controls.left_held:
             self.rect.x = max(0, self.rect.x - self.speed)
             self.facing_right = False
             moving = True
-        if key[pg.K_RIGHT]:
+        if controls.right_held:
             self.rect.x = min(
                 self.world_width - self.rect.width, self.rect.x + self.speed
             )
@@ -727,17 +778,20 @@ class Kirby(pg.sprite.Sprite):
         return moving
 
     def _update_image(self, moving):
+        """현재 상태 우선순위에 따라 Kirby가 보여줄 최종 이미지를 고른다."""
         self._tick_spit_anim()
         self._tick_attack_anim()
 
         attack = self._current_attack()
         if attack is not None:
+            # 공격 중에는 공격 프레임이 가장 우선이다.
             frame = attack["frames"][self.attack_frame_idx]
         elif self.spit_anim_idx >= 0:
             frame = self.spit_frames[self.spit_anim_idx]
         elif self.inhaling:
             frame = self._tick_inhale_anim()
         elif self.held_element is not None:
+            # 입에 문 상태에서는 일반 점프/이동과 다른 프레임을 사용한다.
             if self.is_jumping:
                 frame = (
                     self.held_jump_up if self.velocity_y < 0 else self.held_jump_down
@@ -745,6 +799,7 @@ class Kirby(pg.sprite.Sprite):
             else:
                 frame = self._tick_held_anim(moving)
         elif (ability_state := self._active_beam_state()) is not None:
+            # 빔이 활성화되어 있으면 능력 사용 자세를 보여준다.
             frame = self._tick_ability_anim(*ability_state)
         elif (form_element := self._equipped_form()) is not None:
             form = self.element_forms[form_element]
@@ -762,6 +817,7 @@ class Kirby(pg.sprite.Sprite):
             frame = self.jump_up if self.velocity_y < 0 else self.jump_down
 
         if not self.inhaling:
+            # 흡입을 멈추면 다음 흡입 때 처음 프레임부터 시작한다.
             self.inhale_anim_idx = 0
             self.inhale_anim_t = pg.time.get_ticks()
         if self._active_beam_state() is None:
@@ -773,6 +829,7 @@ class Kirby(pg.sprite.Sprite):
         )
 
     def _anim_frame(self, moving, frames=None):
+        """이동 중이면 걷기 프레임을 넘기고, 멈춰 있으면 idle 프레임을 반환한다."""
         frames = self.move_frames if frames is None else frames
         if not moving:
             return self.idle_frames[0]
@@ -784,20 +841,24 @@ class Kirby(pg.sprite.Sprite):
 
     # ---------------------------------------------------------------- gravity
     def _apply_gravity(self, jump_held, hover_held=False):
+        """점프, 공중 재점프, 호버, 낙하, 바닥 충돌을 처리한다."""
         just_pressed = jump_held and not self._prev_jump_held
         self._prev_jump_held = jump_held
 
         if just_pressed:
             if not self.is_jumping:
+                # 바닥에서 점프를 처음 누르면 위쪽 속도를 준다.
                 self.velocity_y = -10.0
                 self.is_jumping = True
                 self.hovering = False
             else:
+                # 공중에서 다시 점프를 누르면 호버 상태로 들어간다.
                 self.velocity_y = -6.0
                 self.hovering = True
 
         if self.is_jumping:
             if self.hovering and hover_held and self.velocity_y >= 0:
+                # 호버 중에는 낙하 속도를 작게 제한한다.
                 self.velocity_y = min(self.velocity_y + 0.08, 1.2)
             else:
                 self.velocity_y += self.gravity
@@ -806,6 +867,7 @@ class Kirby(pg.sprite.Sprite):
 
         ground = SCREEN_HEIGHT - 50 - self.rect.height
         if self.rect.y >= ground:
+            # 바닥에 닿으면 점프 관련 상태를 모두 정리한다.
             self.rect.y = ground
             self.y_float = float(ground)
             self.velocity_y = 0.0
@@ -818,11 +880,13 @@ class Kirby(pg.sprite.Sprite):
 
     # ---------------------------------------------------------------- beam draw
     def draw_beams(self, surface, camera_x=0):
+        """활성화된 모든 빔과 현재 빔 에너지바를 그린다."""
         for beam in self._beams.values():
             beam.draw(surface, camera_x)
         self._draw_beam_energy(surface, camera_x)
 
     def _draw_beam_energy(self, surface, camera_x=0):
+        """현재 능력 빔의 남은 에너지를 Kirby 아래쪽에 작은 바로 표시한다."""
         if self.is_empty():
             return
         current = self.peek()
@@ -841,7 +905,9 @@ class Kirby(pg.sprite.Sprite):
 
     # ---------------------------------------------------------------- draw
     def draw(self, surface, camera_x=0):
+        """Kirby 본체와 입에 문 속성 표시를 그린다."""
         if self.invulnerable and (pg.time.get_ticks() // 80) % 2:
+            # 무적 중에는 깜빡이게 해서 피격 후 상태를 보여준다.
             return
         image_rect = self.image.get_rect(
             midbottom=(self.rect.centerx - round(camera_x), self.rect.bottom),
@@ -871,6 +937,7 @@ class Kirby(pg.sprite.Sprite):
             )
 
     def draw_inhale_effect(self, surface, camera_x=0):
+        """흡입 중 Kirby 앞쪽에 빨려 들어가는 원형 효과를 그린다."""
         if not self.inhaling:
             return
         mouth_x = self.rect.right if self.facing_right else self.rect.left
@@ -888,20 +955,12 @@ class Kirby(pg.sprite.Sprite):
             blue = 140 + step * 20
             pg.draw.circle(surface, (30, 140, blue), (int(x), y), radius)
 
-    def draw_hud(self, surface, key=None):
+    def draw_hud(self, surface):
+        """능력 스택, 조작 안내, 현재 콤보 상태를 화면에 표시한다."""
         font = self.font
 
-        if key is not None:
-            z_on = key[KEYS["inhale"]]
-            color = (0, 180, 0) if z_on else (180, 0, 0)
-            dbg = font.render(
-                f"Z키: {'ON' if z_on else 'OFF'}  inhaling: {self.inhaling}",
-                True,
-                color,
-            )
-            surface.blit(dbg, (SCREEN_WIDTH - 220, 10))
-
         if self.held_element is not None:
+            # 입에 문 속성이 있을 때는 뱉기/삼키기 안내를 우선 보여준다.
             el = ELEMENTS[self.held_element]
             guide = font.render(
                 f"[{el['label']} 입에 문 중]  X: 뱉기   ↓: 삼키기   SPACE: 점프",
@@ -918,6 +977,7 @@ class Kirby(pg.sprite.Sprite):
 
         attack = self._current_attack()
         if attack is not None:
+            # 근접 공격 중이면 현재 콤보 이름과 예약된 다음 입력 수를 표시한다.
             queued = (
                 f"  NEXT x{self.attack_queue_count}" if self.attack_queue_count else ""
             )
@@ -930,6 +990,7 @@ class Kirby(pg.sprite.Sprite):
 
         if not self.ability_stack:
             return
+        # 능력 스택은 오른쪽 원이 현재 사용 능력이다.
         surface.blit(
             font.render("능력 스택 (오른쪽=현재):", True, (40, 40, 40)), (10, 10)
         )
