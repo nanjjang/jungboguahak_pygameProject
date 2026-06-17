@@ -1,4 +1,4 @@
-import random
+from pathlib import Path
 
 import pygame as pg
 
@@ -6,35 +6,17 @@ import load
 from src.constants import SCREEN_HEIGHT, SCREEN_WIDTH
 
 
+SCENERY_ROOT = Path(__file__).resolve().parent / "assets" / "scenery"
 DIFFICULTY_ORDER = ("easy", "normal", "hard")
-DIFFICULTY_PRESENTATION = {
-    "easy": {
-        "name": "easy",
-        "subtitle": "처음 모험하는 사용자에게 추천",
-        "color": (75, 195, 95),
-        "dark": (24, 125, 66),
-        "enemy": "몬스터 느림",
-        "damage": "피해 적음",
-        "spice": 1,
-    },
-    "normal": {
-        "name": "normal",
-        "subtitle": "기본 난이도",
-        "color": (255, 154, 34),
-        "dark": (205, 75, 25),
-        "enemy": "비교적 둔함",
-        "damage": "기본 피해량",
-        "spice": 2,
-    },
-    "hard": {
-        "name": "hard",
-        "subtitle": "빠른 반응과 강한 공격을 조심하세요",
-        "color": (235, 48, 54),
-        "dark": (145, 18, 50),
-        "enemy": "몬스터 움직임 빠름!!",
-        "damage": "몬스터 증가 및 피해량 증가",
-        "spice": 3,
-    },
+DIFFICULTY_IMAGES = {
+    "easy": "09_17_56",
+    "normal": "09_26_19",
+    "hard": "09_22_20",
+}
+DIFFICULTY_LABELS = {
+    "easy": "EASY",
+    "normal": "NORMAL",
+    "hard": "HARD",
 }
 
 
@@ -43,25 +25,11 @@ class DifficultyMenu:
         self.selected_index = 1
         self.confirmed = False
         self.cancelled = False
-        self.title_font = load.get_korean_font(46)
-        self.large_font = load.get_korean_font(32)
-        self.medium_font = load.get_korean_font(22)
-        self.small_font = load.get_korean_font(17)
-        self.kirby = load.load_image("KSSU_Kirby_Hover_sprite.png").convert_alpha()
-        self.kirby = pg.transform.scale(self.kirby, (176, 187))
-        self.potion = load.load_image("potion.png").convert_alpha()
-        self.potion = pg.transform.scale(self.potion, (72, 72))
-        rng = random.Random(17)
-        self.confetti = []
-        colors = ((255, 218, 45), (255, 240, 120), (255, 128, 35))
-        for _ in range(34):
-            confetti = (
-                rng.randrange(0, SCREEN_WIDTH),
-                rng.randrange(40, SCREEN_HEIGHT - 40),
-                rng.randrange(7, 19),
-                rng.choice(colors),
-            )
-            self.confetti.append(confetti)
+        self.font = load.get_korean_font(18)
+        self.images = {
+            difficulty: _load_difficulty_screen(timestamp)
+            for difficulty, timestamp in DIFFICULTY_IMAGES.items()
+        }
 
     @property
     def difficulty(self):
@@ -73,12 +41,12 @@ class DifficultyMenu:
             return
         if event.type != pg.KEYDOWN:
             return
-        if event.key in (pg.K_UP, pg.K_w):
+        if event.key in (pg.K_UP, pg.K_w, pg.K_RIGHT, pg.K_d):
             self.selected_index = min(
                 len(DIFFICULTY_ORDER) - 1,
                 self.selected_index + 1,
             )
-        elif event.key in (pg.K_DOWN, pg.K_s):
+        elif event.key in (pg.K_DOWN, pg.K_s, pg.K_LEFT, pg.K_a):
             self.selected_index = max(0, self.selected_index - 1)
         elif event.key in (pg.K_RETURN, pg.K_KP_ENTER, pg.K_SPACE):
             self.confirmed = True
@@ -86,147 +54,19 @@ class DifficultyMenu:
             self.cancelled = True
 
     def draw(self, surface):
-        data = DIFFICULTY_PRESENTATION[self.difficulty]
-        self._draw_background(surface, data)
-        self._draw_gauge(surface)
-        self._draw_info_card(surface, data)
-        self._draw_plate(surface, data)
-        self._draw_kirby(surface, data)
-        self._draw_controls(surface)
+        difficulty = self.difficulty
+        surface.fill(_backdrop_color(difficulty))
+        image = self.images[difficulty]
+        image_rect = image.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
+        surface.blit(image, image_rect)
+        self._draw_controls(surface, difficulty)
 
-    def _draw_background(self, surface, data):
-        bottom = (255, 205, 35) if self.difficulty != "hard" else (245, 90, 35)
-        surface.fill(data["color"])
-        pg.draw.rect(
-            surface,
-            bottom,
-            (0, SCREEN_HEIGHT // 2, SCREEN_WIDTH, SCREEN_HEIGHT // 2),
-        )
-
-        for x, y, size, color in self.confetti:
-            shade = (*color, 80)
-            tile = pg.Surface((size, size), pg.SRCALPHA)
-            tile.fill(shade)
-            surface.blit(tile, (x, y))
-
-        pg.draw.polygon(
-            surface,
-            (205, 20, 38),
-            ((0, 0), (SCREEN_WIDTH, 0), (SCREEN_WIDTH, 58), (0, 86)),
-        )
-        pg.draw.polygon(
-            surface,
-            (255, 115, 24),
-            (
-                (0, 535),
-                (SCREEN_WIDTH, 510),
-                (SCREEN_WIDTH, SCREEN_HEIGHT),
-                (0, SCREEN_HEIGHT),
-            ),
-        )
-        title = self.title_font.render("난이도 선택", True, (255, 255, 255))
-        shadow = self.title_font.render("난이도 선택", True, (55, 37, 120))
-        title_rect = title.get_rect(topright=(SCREEN_WIDTH - 35, 24))
-        surface.blit(shadow, title_rect.move(4, 4))
-        surface.blit(title, title_rect)
-
-    def _draw_gauge(self, surface):
-        outer = pg.Rect(48, 105, 142, 356)
-        pg.draw.rect(surface, (28, 35, 110), outer, border_radius=24)
-        pg.draw.rect(surface, (255, 117, 35), outer.inflate(-18, -18), border_radius=17)
-        tube = pg.Rect(82, 135, 54, 285)
-        pg.draw.rect(surface, (255, 245, 210), tube, border_radius=12)
-
-        colors = ((70, 205, 95), (255, 174, 32), (235, 48, 54))
-        for index, color in enumerate(colors):
-            y = tube.bottom - 95 * (index + 1)
-            rect = pg.Rect(tube.x + 7, y + 4, tube.width - 14, 87)
-            pg.draw.rect(surface, color, rect, border_radius=5)
-
-        marker_positions = (372, 277, 182)
-        marker_y = marker_positions[self.selected_index]
-        pg.draw.polygon(
-            surface,
-            (255, 245, 75),
-            ((139, marker_y), (177, marker_y - 22), (177, marker_y + 22)),
-        )
-        pg.draw.polygon(
-            surface,
-            (31, 39, 115),
-            ((146, marker_y), (169, marker_y - 13), (169, marker_y + 13)),
-        )
-
-        label = self.medium_font.render(
-            f"LEVEL {self.selected_index + 1}",
-            True,
-            (255, 255, 255),
-        )
-        surface.blit(label, label.get_rect(center=(outer.centerx, 443)))
-
-    def _draw_info_card(self, surface, data):
-        outer = pg.Rect(214, 112, 385, 225)
-        pg.draw.ellipse(surface, (28, 38, 120), outer)
-        inner = outer.inflate(-25, -25)
-        pg.draw.ellipse(surface, data["dark"], inner)
-
-        level = self.large_font.render(
-            str(self.selected_index + 1),
-            True,
-            (255, 255, 255),
-        )
-        level_badge = pg.Rect(232, 91, 72, 72)
-        pg.draw.ellipse(surface, (255, 218, 45), level_badge)
-        pg.draw.ellipse(surface, (28, 38, 120), level_badge, 6)
-        surface.blit(level, level.get_rect(center=level_badge.center))
-
-        name = self.large_font.render(data["name"], True, (255, 255, 255))
-        surface.blit(name, name.get_rect(center=(outer.centerx, 174)))
-        subtitle = self.small_font.render(data["subtitle"], True, (255, 239, 188))
-        surface.blit(subtitle, subtitle.get_rect(center=(outer.centerx, 214)))
-
-        rows = (
-            ("몬스터", data["enemy"]),
-            ("전투", data["damage"]),
-        )
-        for row, (label, value) in enumerate(rows):
-            y = 250 + row * 35
-            pg.draw.rect(surface, (110, 30, 45), (280, y, 250, 27), border_radius=13)
-            text = self.small_font.render(f"{label}   {value}", True, (255, 255, 255))
-            surface.blit(text, text.get_rect(center=(405, y + 13)))
-
-    def _draw_plate(self, surface, data):
-        pg.draw.ellipse(surface, (215, 220, 230), (245, 414, 375, 128))
-        pg.draw.ellipse(surface, (255, 255, 250), (260, 400, 345, 124))
-        pg.draw.ellipse(surface, data["dark"], (300, 427, 265, 76))
-
-        y_offsets = (-8, 7, -4, 9, -2)
-        item_count = data["spice"] + 2
-        for index in range(item_count):
-            x = 335 + index * 46
-            y = 461 + y_offsets[index]
-            pg.draw.circle(surface, data["color"], (x, y), 12)
-            pg.draw.circle(surface, (255, 220, 60), (x, y), 5)
-
-        bottle = self.potion
-        surface.blit(bottle, bottle.get_rect(midbottom=(564, 442)))
-
-    def _draw_kirby(self, surface, data):
-        bob = 5 if (pg.time.get_ticks() // 300) % 2 == 0 else 0
-        kirby_rect = self.kirby.get_rect(midbottom=(690, 482 + bob))
-        surface.blit(self.kirby, kirby_rect)
-
-    def _draw_controls(self, surface):
-        guide = self.medium_font.render(
-            "↑ ↓  선택       ENTER / SPACE  결정       ESC  종료",
-            True,
-            (255, 255, 255),
-        )
-        shadow = self.medium_font.render(
-            "↑ ↓  선택       ENTER / SPACE  결정       ESC  종료",
-            True,
-            (50, 34, 105),
-        )
-        rect = guide.get_rect(center=(SCREEN_WIDTH // 2, 566))
+    def _draw_controls(self, surface, difficulty):
+        label = DIFFICULTY_LABELS[difficulty]
+        guide_text = f"{label}   ↑↓/←→ 선택     ENTER/SPACE 결정     ESC 종료"
+        shadow = self.font.render(guide_text, True, (80, 25, 15))
+        guide = self.font.render(guide_text, True, (255, 255, 255))
+        rect = guide.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 30))
         surface.blit(shadow, rect.move(2, 2))
         surface.blit(guide, rect)
 
@@ -240,3 +80,29 @@ def select_difficulty(screen, clock):
         menu.draw(screen)
         pg.display.flip()
     return None if menu.cancelled else menu.difficulty
+
+
+def _load_difficulty_screen(timestamp):
+    path = _find_difficulty_image(timestamp)
+    image = pg.image.load(path).convert()
+    scale = min(SCREEN_WIDTH / image.get_width(), SCREEN_HEIGHT / image.get_height())
+    size = (
+        round(image.get_width() * scale),
+        round(image.get_height() * scale),
+    )
+    return pg.transform.smoothscale(image, size)
+
+
+def _find_difficulty_image(timestamp):
+    matches = sorted(SCENERY_ROOT.glob(f"ChatGPT Image*{timestamp}.png"))
+    if not matches:
+        raise FileNotFoundError(f"Difficulty image not found: {timestamp}")
+    return matches[0]
+
+
+def _backdrop_color(difficulty):
+    if difficulty == "hard":
+        return (120, 12, 8)
+    if difficulty == "normal":
+        return (224, 82, 14)
+    return (248, 169, 24)

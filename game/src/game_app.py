@@ -12,6 +12,7 @@ from src.game_renderer import render_game
 from src.game_state import GameState
 from src.gameplay import update_gameplay
 from src.setting import select_difficulty
+from src.title_screen import TitleAction, show_title_screen
 
 
 def run_game(difficulty=None):
@@ -21,6 +22,12 @@ def run_game(difficulty=None):
     clock = pg.time.Clock()
     font = load.get_korean_font(18)
     large_font = load.get_korean_font(38)
+
+    if difficulty is None:
+        title_action = show_title_screen(screen, clock)
+        if title_action == TitleAction.QUIT:
+            pg.quit()
+            return 0
 
     difficulty = _resolve_difficulty(difficulty, screen, clock)
     if difficulty is None:

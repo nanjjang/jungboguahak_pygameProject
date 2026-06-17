@@ -26,12 +26,16 @@ def draw_status_hud(surface, state, font, large_font):
     stage_text = font.render(
         f"STAGE {stage.label}   {difficulty_label}",
         True,
-        (40, 40, 55),
+        (255, 255, 255),
     )
-    surface.blit(
-        stage_text,
-        stage_text.get_rect(topright=(SCREEN_WIDTH - 12, 12)),
+    stage_shadow = font.render(
+        f"STAGE {stage.label}   {difficulty_label}",
+        True,
+        (25, 20, 35),
     )
+    rect = stage_text.get_rect(topright=(SCREEN_WIDTH - 12, 12))
+    surface.blit(stage_shadow, rect.move(2, 2))
+    surface.blit(stage_text, rect)
     _draw_boss_hud(surface, state, font)
     _draw_stage_title(surface, stage, large_font)
 
@@ -75,10 +79,15 @@ def _draw_boss_hud(surface, state, font):
 def _draw_stage_title(surface, stage, large_font):
     now = pg.time.get_ticks()
     if stage.clear_started_at is not None:
-        title = large_font.render("STAGE CLEAR", True, (255, 195, 40))
+        label = "STAGE CLEAR"
+        color = (255, 225, 70)
     elif now - stage.stage_started_at < 1100:
         label = f"BOSS {stage.label}" if stage.is_boss_stage else f"STAGE {stage.label}"
-        title = large_font.render(label, True, (65, 80, 150))
+        color = (255, 245, 180)
     else:
         return
-    surface.blit(title, title.get_rect(center=(SCREEN_WIDTH // 2, 150)))
+    shadow = large_font.render(label, True, (55, 28, 70))
+    title = large_font.render(label, True, color)
+    rect = title.get_rect(center=(SCREEN_WIDTH // 2, 150))
+    surface.blit(shadow, rect.move(3, 3))
+    surface.blit(title, rect)

@@ -2,14 +2,8 @@ import pygame as pg
 
 from src.constants import DIFFICULTY_SETTINGS
 from src.enemy import create_enemy
-
-WORLD_PALETTES = (
-    ((205, 239, 255), (120, 205, 130), (75, 155, 85)),
-    ((255, 232, 190), (205, 174, 95), (145, 115, 65)),
-    ((220, 213, 255), (145, 125, 205), (92, 77, 150)),
-    ((195, 235, 230), (90, 185, 170), (55, 125, 120)),
-    ((235, 213, 230), (185, 105, 145), (120, 65, 100)),
-)
+from src.object import StageScenery
+from src.stage_clear_animation import animation_duration_ms
 
 ROUTE_WIDTHS = {
     1: (2550, 2770),
@@ -27,7 +21,6 @@ class StageManager:
 
     TOTAL_WORLDS = 5
     SUBSTAGES = 3
-    CLEAR_DELAY_MS = 550
 
     def __init__(self, difficulty, ground_y):
         if difficulty not in DIFFICULTY_SETTINGS:
@@ -41,6 +34,7 @@ class StageManager:
         self.clear_started_at = None
         self.world_width = self._stage_width()
         self.goal_rect = self._make_goal_rect()
+        self.scenery = self._make_scenery()
 
     @property
     def label(self):
@@ -59,6 +53,7 @@ class StageManager:
         self.clear_started_at = None
         self.world_width = self._stage_width()
         self.goal_rect = self._make_goal_rect()
+        self.scenery = self._make_scenery()
         if self.is_boss_stage:
             return [self._spawn_boss()]
         return self._spawn_route_enemies()
@@ -81,7 +76,7 @@ class StageManager:
 
         now = pg.time.get_ticks()
         if self.transitioning:
-            if now - self.clear_started_at < self.CLEAR_DELAY_MS:
+            if now - self.clear_started_at < animation_duration_ms():
                 return None
             self._advance()
             if self.completed:
@@ -98,43 +93,8 @@ class StageManager:
         return None
 
     def draw_environment(self, surface, camera_x, enemies, font):
-        """Draw lightweight route staging while the full background is deferred."""
-        camera_x = round(camera_x)
-        palette = WORLD_PALETTES[self.world - 1]
-        sky, ground, ground_dark = palette
-        surface.fill(sky)
-
-        # Distant rounded hills move more slowly than the route.
-        parallax = camera_x // 4
-        for x in range(-300, self.world_width + 500, 360):
-            sx = x - parallax
-            pg.draw.circle(surface, ground, (sx, self.ground_y + 55), 190)
-
-        pg.draw.rect(
-            surface,
-            ground,
-            (
-                0,
-                self.ground_y,
-                surface.get_width(),
-                surface.get_height() - self.ground_y,
-            ),
-        )
-        pg.draw.line(
-            surface,
-            ground_dark,
-            (0, self.ground_y),
-            (surface.get_width(), self.ground_y),
-            5,
-        )
-
-        # Sparse route markers make forward movement and camera scrolling readable.
-        for x in range(260, self.world_width - 140, 420):
-            sx = x - camera_x
-            if -60 <= sx <= surface.get_width() + 60:
-                pg.draw.rect(surface, ground_dark, (sx - 5, self.ground_y - 45, 10, 45))
-                pg.draw.circle(surface, ground, (sx, self.ground_y - 58), 24)
-
+        """Draw the image-backed scenery and exit door."""
+        self.scenery.draw(surface, camera_x)
         self._draw_goal(surface, camera_x, enemies, font)
 
     def _draw_goal(self, surface, camera_x, enemies, font):
@@ -183,6 +143,9 @@ class StageManager:
 
     def _make_goal_rect(self):
         return pg.Rect(self.world_width - 100, self.ground_y - 108, 58, 108)
+
+    def _make_scenery(self):
+        return StageScenery(self.world, self.substage, self.world_width, self.ground_y)
 
     def _spawn_route_enemies(self):
         settings = DIFFICULTY_SETTINGS[self.difficulty]
