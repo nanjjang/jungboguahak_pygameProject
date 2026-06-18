@@ -8,7 +8,6 @@ import load
 
 
 FRAME_MS = 55
-# 엔딩 프레임 이미지는 assets/images/ending 폴더에서 순서대로 읽는다.
 _FRAME_DIR = load.IMAGE_ROOT / "ending"
 _FRAME_PATTERN = "kirby_frame_*.jpg"
 

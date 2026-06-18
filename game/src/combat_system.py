@@ -45,7 +45,7 @@ def _resolve_beam_hits(state):
     """지속형 빔 공격이 적에게 닿았는지 확인한다."""
     player = state.player
     beam_rect = player.active_beam_rect
-    if beam_rect is None or player.beam_kill_cd > 0:
+    if beam_rect is None or player.beam_hit_cooldown_frames > 0:
         # 빔은 매 프레임 계속 닿기 때문에 짧은 쿨타임으로 중복 피해를 막는다.
         return
 
@@ -57,7 +57,7 @@ def _resolve_beam_hits(state):
                 player.rect.centerx,
                 state,
             )
-            player.beam_kill_cd = 8
+            player.beam_hit_cooldown_frames = 8
             break
 
 

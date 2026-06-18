@@ -2,6 +2,7 @@
 
 import pygame
 import sys
+import load
 from src.constants import (
     FPS,
     SCREEN_HEIGHT,
@@ -27,8 +28,8 @@ BLUE = (100, 149, 237)
 GREEN = (60, 179, 113)
 
 # 폰트 설정
-font = pygame.font.SysFont("malgungothic", 22)
-title_font = pygame.font.SysFont("malgungothic", 36)
+font = load.get_korean_font(22)
+title_font = load.get_korean_font(36)
 
 # --- 실제 적용 데이터 ---
 # 실제 적용 데이터는 메뉴를 닫은 뒤에도 유지되는 설정값이다.
