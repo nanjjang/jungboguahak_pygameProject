@@ -1,18 +1,17 @@
 """게임 중 ESC로 들어가는 설정 메뉴와 캐릭터 설정 메뉴."""
 
-import pygame
-import sys
-import load
+import pygame as pg
+import  sys, load
 from src.constants import (
     FPS,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
 )
+from src.warningMessage import show_popup
 # 화면 설정 관련 변수
 # 이 파일은 자체 설정 화면을 그리기 위해 별도의 screen/clock 참조를 가진다.
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("커비 게임 - 고급 설정 메뉴")
-clock = pygame.time.Clock()
+screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+clock = pg.time.Clock()
 
 
 # 색상 정의
@@ -65,7 +64,7 @@ pending_direction = None   # 팝업 승낙 시 이동할 위/아래 방향 저�
 volume_dragging = False
 
 # 볼륨 바 위치 및 크기 정의 (x, y, width, height)
-VOLUME_BAR_RECT = pygame.Rect(650, 110, 200, 15)
+VOLUME_BAR_RECT = pg.Rect(650, 110, 200, 15)
 
 # --- 방향키 연속 조작용 시간 측정 변수 ---
 key_hold_time = 0        # 키가 유지된 시간 (밀리초)
@@ -102,113 +101,115 @@ def apply_screen_mode():
 
     flags = 0
     if is_fullscreen:
-        flags = pygame.FULLSCREEN
-    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), flags)
+        flags = pg.FULLSCREEN
+    screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), flags)
 
 
 # ====================================================
 # 순서 관계없이 자유롭게 선택하는 캐릭터 세팅 화면
 # ====================================================
 def show_character_setting_menu():
-    """캐릭터 색상과 코스튬을 고르는 하위 설정 화면."""
-    global current_color_idx, current_costume_idx, temp_color_idx, temp_costume_idx
 
-    # 하위 메뉴에 들어올 때 현재 적용값을 임시값으로 복사한다.
-    temp_color_idx = current_color_idx
-    temp_costume_idx = current_costume_idx
-    selected_row = 0 
+    show_popup(screen, "현재 개발 중에 있는 기능입니다! \n v2.0 업데이트를 기달려주세요!")
+    return
+    # global current_color_idx, current_costume_idx, temp_color_idx, temp_costume_idx
 
-    char_menu_running = True
-    while char_menu_running:
-        clock.tick(30)
-        screen.fill(BLACK)  
+    # # 하위 메뉴에 들어올 때 현재 적용값을 임시값으로 복사한다.
+    # temp_color_idx = current_color_idx
+    # temp_costume_idx = current_costume_idx
+    # selected_row = 0 
 
-        # 왼쪽에는 현재 임시 선택 상태의 캐릭터 미리보기를 그린다.
-        draw_text("★ 캐릭터 세팅 ★", title_font, PINK, screen, 50, 40)
-        draw_text("방향키 [위/아래] 줄이동, [좌/우] 변경 | [ENTER] 승낙(적용), [ESC] 거절(취소)", font, LIGHT_GRAY, screen, 50, 95)
+    # char_menu_running = True
+    # while char_menu_running:
+    #     clock.tick(30)
+    #     screen.fill(BLACK)  
 
-        box_w, box_h = 220, 220
-        box_x = 80
-        box_y = (SCREEN_HEIGHT // 2) - (box_h // 2)
+    #     # 왼쪽에는 현재 임시 선택 상태의 캐릭터 미리보기를 그린다.
+    #     draw_text("★ 캐릭터 세팅 ★", title_font, PINK, screen, 50, 40)
+    #     draw_text("방향키 [위/아래] 줄이동, [좌/우] 변경 | [ENTER] 승낙(적용), [ESC] 거절(취소)", font, LIGHT_GRAY, screen, 50, 95)
+
+    #     box_w, box_h = 220, 220
+    #     box_x = 80
+    #     box_y = (SCREEN_HEIGHT // 2) - (box_h // 2)
         
-        kirby_color = color_map[char_colors[temp_color_idx]]
-        pygame.draw.rect(screen, kirby_color, (box_x, box_y, box_w, box_h))
-        pygame.draw.rect(screen, WHITE, (box_x, box_y, box_w, box_h), 4)
+    #     kirby_color = color_map[char_colors[temp_color_idx]]
+    #     pg.draw.rect(screen, kirby_color, (box_x, box_y, box_w, box_h))
+    #     pg.draw.rect(screen, WHITE, (box_x, box_y, box_w, box_h), 4)
         
-        draw_text(f"[{costumes[temp_costume_idx]}]", font, BLACK, screen, box_x + 60, box_y + 95)
-        draw_text("< 현재 캐릭터 상태 >", font, WHITE, screen, box_x + 15, box_y - 35)
+    #     draw_text(f"[{costumes[temp_costume_idx]}]", font, BLACK, screen, box_x + 60, box_y + 95)
+    #     draw_text("< 현재 캐릭터 상태 >", font, WHITE, screen, box_x + 15, box_y - 35)
 
-        start_x = 420
-        obj_w, obj_h = 110, 60
-        gap = 25
+    #     start_x = 420
+    #     obj_w, obj_h = 110, 60
+    #     gap = 25
 
-        step1_color = YELLOW if selected_row == 0 else WHITE
-        draw_text("1. 캐릭터 색상 선택", font, step1_color, screen, start_x, 180)
+    #     step1_color = YELLOW if selected_row == 0 else WHITE
+    #     draw_text("1. 캐릭터 색상 선택", font, step1_color, screen, start_x, 180)
         
-        for idx, name in enumerate(char_colors):
-            # 선택 가능한 색상을 가로로 나열하고 현재 선택값에 테두리를 준다.
-            item_x = start_x + idx * (obj_w + gap)
-            item_y = 220
-            pygame.draw.rect(screen, color_map[name], (item_x, item_y, obj_w, obj_h))
-            if selected_row == 0 and temp_color_idx == idx:
-                border_color = YELLOW
-                border_size = 4
-            else:
-                border_color = WHITE if temp_color_idx == idx else GRAY
-                border_size = 2
-            pygame.draw.rect(screen, border_color, (item_x, item_y, obj_w, obj_h), border_size)
-            draw_text(name, font, BLACK, screen, item_x + 15, item_y + 15)
+    #     for idx, name in enumerate(char_colors):
+    #         # 선택 가능한 색상을 가로로 나열하고 현재 선택값에 테두리를 준다.
+    #         item_x = start_x + idx * (obj_w + gap)
+    #         item_y = 220
+    #         pg.draw.rect(screen, color_map[name], (item_x, item_y, obj_w, obj_h))
+    #         if selected_row == 0 and temp_color_idx == idx:
+    #             border_color = YELLOW
+    #             border_size = 4
+    #         else:
+    #             border_color = WHITE if temp_color_idx == idx else GRAY
+    #             border_size = 2
+    #         pg.draw.rect(screen, border_color, (item_x, item_y, obj_w, obj_h), border_size)
+    #         draw_text(name, font, BLACK, screen, item_x + 15, item_y + 15)
 
-        step2_color = YELLOW if selected_row == 1 else WHITE
-        draw_text("2. 캐릭터 코스튬 선택", font, step2_color, screen, start_x, 340)
+    #     step2_color = YELLOW if selected_row == 1 else WHITE
+    #     draw_text("2. 캐릭터 코스튬 선택", font, step2_color, screen, start_x, 340)
         
-        for idx, name in enumerate(costumes):
-            # 코스튬도 색상과 같은 방식으로 선택 테두리를 표시한다.
-            item_x = start_x + idx * (obj_w + gap)
-            item_y = 380
-            pygame.draw.rect(screen, DARK_GRAY, (item_x, item_y, obj_w, obj_h))
-            if selected_row == 1 and temp_costume_idx == idx:
-                border_color = YELLOW
-                border_size = 4
-            else:
-                border_color = WHITE if temp_costume_idx == idx else GRAY
-                border_size = 2
-            pygame.draw.rect(screen, border_color, (item_x, item_y, obj_w, obj_h), border_size)
-            draw_text(name, font, WHITE, screen, item_x + 15, item_y + 15)
+    #     for idx, name in enumerate(costumes):
+    #         # 코스튬도 색상과 같은 방식으로 선택 테두리를 표시한다.
+    #         item_x = start_x + idx * (obj_w + gap)
+    #         item_y = 380
+    #         pg.draw.rect(screen, DARK_GRAY, (item_x, item_y, obj_w, obj_h))
+    #         if selected_row == 1 and temp_costume_idx == idx:
+    #             border_color = YELLOW
+    #             border_size = 4
+    #         else:
+    #             border_color = WHITE if temp_costume_idx == idx else GRAY
+    #             border_size = 2
+    #         pg.draw.rect(screen, border_color, (item_x, item_y, obj_w, obj_h), border_size)
+    #         draw_text(name, font, WHITE, screen, item_x + 15, item_y + 15)
 
-        pygame.draw.rect(screen, DARK_GRAY, (0, 530, SCREEN_WIDTH, 70))
-        if selected_row == 0:
-            draw_text("▶ 방향키 [위/아래]로 코스튬 메뉴 이동 가능 | [좌/우]로 색상 변경", font, YELLOW, screen, 50, 550)
-        else:
-            draw_text("▶ 방향키 [위/아래]로 색상 메뉴 이동 가능 | [좌/우]로 코스튬 변경", font, GREEN, screen, 50, 550)
+    #     pg.draw.rect(screen, DARK_GRAY, (0, 530, SCREEN_WIDTH, 70))
+    #     if selected_row == 0:
+    #         draw_text("▶ 방향키 [위/아래]로 코스튬 메뉴 이동 가능 | [좌/우]로 색상 변경", font, YELLOW, screen, 50, 550)
+    #     else:
+    #         draw_text("▶ 방향키 [위/아래]로 색상 메뉴 이동 가능 | [좌/우]로 코스튬 변경", font, GREEN, screen, 50, 550)
 
-        pygame.display.flip()
+    #     pg.display.flip()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    # ESC는 임시 선택을 버리고 이전 메뉴로 돌아간다.
-                    char_menu_running = False
-                elif event.key == pygame.K_RETURN:
-                    # ENTER는 임시 선택을 실제 적용값으로 복사한다.
-                    current_color_idx = temp_color_idx
-                    current_costume_idx = temp_costume_idx
-                    char_menu_running = False
-                elif event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-                    selected_row = 1 - selected_row
-                elif event.key == pygame.K_LEFT:
-                    if selected_row == 0:
-                        temp_color_idx = (temp_color_idx - 1) % len(char_colors)
-                    else:
-                        temp_costume_idx = (temp_costume_idx - 1) % len(costumes)
-                elif event.key == pygame.K_RIGHT:
-                    if selected_row == 0:
-                        temp_color_idx = (temp_color_idx + 1) % len(char_colors)
-                    else:
-                        temp_costume_idx = (temp_costume_idx + 1) % len(costumes)
+    #     for event in pg.event.get():
+    #         if event.type == pg.QUIT:
+    #             pg.quit()
+    #             sys.exit()
+    #         if event.type == pg.KEYDOWN:
+    #             if event.key == pg.K_ESCAPE:
+    #                 # ESC는 임시 선택을 버리고 이전 메뉴로 돌아간다.
+    #                 char_menu_running = False
+    #             elif event.key == pg.K_RETURN:
+    #                 # ENTER는 임시 선택을 실제 적용값으로 복사한다.
+    #                 current_color_idx = temp_color_idx
+    #                 current_costume_idx = temp_costume_idx
+    #                 char_menu_running = False
+    #             elif event.key == pg.K_UP or event.key == pg.K_DOWN:
+    #                 selected_row = 1 - selected_row
+    #             elif event.key == pg.K_LEFT:
+    #                 if selected_row == 0:
+    #                     temp_color_idx = (temp_color_idx - 1) % len(char_colors)
+    #                 else:
+    #                     temp_costume_idx = (temp_costume_idx - 1) % len(costumes)
+    #             elif event.key == pg.K_RIGHT:
+    #                 if selected_row == 0:
+    #                     temp_color_idx = (temp_color_idx + 1) % len(char_colors)
+    #                 else:
+    #                     temp_costume_idx = (temp_costume_idx + 1) % len(costumes)
 
 
 # ====================================================
@@ -246,8 +247,8 @@ def show_settings_menu():
         # 왼쪽 UI: 실제 적용 값 렌더링
         box_x, box_y, box_w, box_h = 80, 220, 160, 160
         kirby_color = color_map[char_colors[current_color_idx]]
-        pygame.draw.rect(screen, kirby_color, (box_x, box_y, box_w, box_h))
-        pygame.draw.rect(screen, WHITE, (box_x, box_y, box_w, box_h), 3) 
+        pg.draw.rect(screen, kirby_color, (box_x, box_y, box_w, box_h))
+        pg.draw.rect(screen, WHITE, (box_x, box_y, box_w, box_h), 3) 
         draw_text(f"[{costumes[current_costume_idx]}]", font, BLACK, screen, box_x + 35, box_y + 65)
 
         if selected_index == 7:
@@ -295,16 +296,16 @@ def show_settings_menu():
         # ----------------------------------------------------
         # 볼륨 슬라이더 및 우측 수치 텍스트 복구
         # ----------------------------------------------------
-        pygame.draw.rect(screen, GRAY, VOLUME_BAR_RECT) 
+        pg.draw.rect(screen, GRAY, VOLUME_BAR_RECT) 
         filled_width = int(VOLUME_BAR_RECT.width * (volume / 100))
-        pygame.draw.rect(screen, PINK, (VOLUME_BAR_RECT.x, VOLUME_BAR_RECT.y, filled_width, VOLUME_BAR_RECT.height))
+        pg.draw.rect(screen, PINK, (VOLUME_BAR_RECT.x, VOLUME_BAR_RECT.y, filled_width, VOLUME_BAR_RECT.height))
         handle_x = VOLUME_BAR_RECT.x + filled_width
         handle_y = VOLUME_BAR_RECT.y + VOLUME_BAR_RECT.height // 2
         if selected_index == 0:
             handle_color = YELLOW
         else:
             handle_color = WHITE
-        pygame.draw.circle(screen, handle_color, (handle_x, handle_y), 8)
+        pg.draw.circle(screen, handle_color, (handle_x, handle_y), 8)
 
         # 볼륨 바 오른쪽에 % 수치를 선명하게 다시 그려줍니다.
         draw_text(
@@ -318,14 +319,14 @@ def show_settings_menu():
 
         # 난이도 이탈 시 발생하는 승낙/거절 팝업창
         if confirm_mode:
-            popup_rect = pygame.Rect(
+            popup_rect = pg.Rect(
                 SCREEN_WIDTH // 2 - 200,
                 SCREEN_HEIGHT // 2 - 80,
                 400,
                 160,
             )
-            pygame.draw.rect(screen, DARK_GRAY, popup_rect)
-            pygame.draw.rect(screen, PINK, popup_rect, 3)
+            pg.draw.rect(screen, DARK_GRAY, popup_rect)
+            pg.draw.rect(screen, PINK, popup_rect, 3)
             draw_text(
                 "난이도 변경 사항을 적용하시겠습니까?",
                 font,
@@ -343,14 +344,14 @@ def show_settings_menu():
                 SCREEN_HEIGHT // 2 + 10,
             )
 
-        pygame.display.flip()
+        pg.display.flip()
 
         # 볼륨 홀딩 처리
         if selected_index == 0 and pressed_direction is not None and not typing_mode:
             # 좌/우 키를 오래 누르면 볼륨이 일정 간격으로 계속 변하게 한다.
             key_hold_time += dt
             if key_hold_time >= 600:
-                current_time = pygame.time.get_ticks()
+                current_time = pg.time.get_ticks()
                 if current_time - last_tick_time >= 100:
                     if pressed_direction == "LEFT":
                         volume = max(0, volume - 5)
@@ -360,15 +361,15 @@ def show_settings_menu():
         else:
             key_hold_time = 0
 
-        mouse_pos = pygame.mouse.get_pos()
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
+        mouse_pos = pg.mouse.get_pos()
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
                 sys.exit()
 
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 # 볼륨 바 근처를 클릭하면 드래그로 볼륨을 조절할 수 있다.
-                drag_rect = pygame.Rect(
+                drag_rect = pg.Rect(
                     VOLUME_BAR_RECT.x,
                     VOLUME_BAR_RECT.y - 5,
                     VOLUME_BAR_RECT.width + 10,
@@ -378,19 +379,19 @@ def show_settings_menu():
                     volume_dragging = True
                     selected_index = 0
 
-            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if event.type == pg.MOUSEBUTTONUP and event.button == 1:
                 volume_dragging = False
 
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT and pressed_direction == "LEFT":
+            if event.type == pg.KEYUP:
+                if event.key == pg.K_LEFT and pressed_direction == "LEFT":
                     pressed_direction = None
-                elif event.key == pygame.K_RIGHT and pressed_direction == "RIGHT":
+                elif event.key == pg.K_RIGHT and pressed_direction == "RIGHT":
                     pressed_direction = None
 
-            if event.type == pygame.KEYDOWN:
+            if event.type == pg.KEYDOWN:
                 if confirm_mode:
                     # 난이도 변경 후 다른 줄로 이동하려 할 때 적용/취소를 먼저 묻는다.
-                    if event.key == pygame.K_RETURN:
+                    if event.key == pg.K_RETURN:
                         # 승낙
                         diff_index = temp_diff_index
                         confirm_mode = False
@@ -398,7 +399,7 @@ def show_settings_menu():
                             selected_index = previous_menu_index(selected_index, menu_items)
                         elif pending_direction == "DOWN":
                             selected_index = next_menu_index(selected_index, menu_items)
-                    elif event.key == pygame.K_ESCAPE:
+                    elif event.key == pg.K_ESCAPE:
                         # 거절
                         temp_diff_index = diff_index
                         confirm_mode = False
@@ -410,39 +411,39 @@ def show_settings_menu():
 
                 if typing_mode:
                     # 닉네임 입력 모드에서는 이동키 대신 문자 입력을 우선 처리한다.
-                    if event.key == pygame.K_RETURN:
+                    if event.key == pg.K_RETURN:
                         typing_mode = False
-                    elif event.key == pygame.K_BACKSPACE:
+                    elif event.key == pg.K_BACKSPACE:
                         nickname = nickname[:-1]
                     elif len(nickname) < 15 and event.unicode.isalnum():
                         nickname += event.unicode
                     continue
 
-                if event.key == pygame.K_ESCAPE:
+                if event.key == pg.K_ESCAPE:
                     menu_running = False
 
                 # 위/아래 이동 시, 난이도 변경사항이 있으면 다른 옵션 가기 전에 팝업 발생
-                elif event.key == pygame.K_UP:
+                elif event.key == pg.K_UP:
                     if selected_index == 1 and diff_index != temp_diff_index:
                         confirm_mode = True
                         pending_direction = "UP"
                     else:
                         selected_index = previous_menu_index(selected_index, menu_items)
 
-                elif event.key == pygame.K_DOWN:
+                elif event.key == pg.K_DOWN:
                     if selected_index == 1 and diff_index != temp_diff_index:
                         confirm_mode = True
                         pending_direction = "DOWN"
                     else:
                         selected_index = next_menu_index(selected_index, menu_items)
 
-                elif event.key == pygame.K_LEFT:
+                elif event.key == pg.K_LEFT:
                     # 왼쪽 키는 현재 선택된 항목의 값을 줄이거나 이전 선택지로 이동한다.
                     if selected_index == 0:
                         volume = max(0, volume - 5)
                         pressed_direction = "LEFT"
                         key_hold_time = 0
-                        last_tick_time = pygame.time.get_ticks()
+                        last_tick_time = pg.time.get_ticks()
                     elif selected_index == 1:
                         temp_diff_index = (temp_diff_index - 1) % len(difficulties)
                     elif selected_index == 3:
@@ -453,13 +454,13 @@ def show_settings_menu():
                         is_fullscreen = not is_fullscreen
                         apply_screen_mode()
 
-                elif event.key == pygame.K_RIGHT:
+                elif event.key == pg.K_RIGHT:
                     # 오른쪽 키는 현재 선택된 항목의 값을 늘리거나 다음 선택지로 이동한다.
                     if selected_index == 0:
                         volume = min(100, volume + 5)
                         pressed_direction = "RIGHT"
                         key_hold_time = 0
-                        last_tick_time = pygame.time.get_ticks()
+                        last_tick_time = pg.time.get_ticks()
                     elif selected_index == 1:
                         temp_diff_index = (temp_diff_index + 1) % len(difficulties)
                     elif selected_index == 3:
@@ -470,7 +471,7 @@ def show_settings_menu():
                         is_fullscreen = not is_fullscreen
                         apply_screen_mode()
 
-                elif event.key == pygame.K_RETURN:
+                elif event.key == pg.K_RETURN:
                     # ENTER는 하위 메뉴 진입, 재시작, 종료처럼 명령형 항목을 실행한다.
                     if selected_index == 7:
                         typing_mode = True
@@ -479,7 +480,7 @@ def show_settings_menu():
                     elif selected_index == 5:
                         menu_running = False
                     elif selected_index == 6:
-                        pygame.quit()
+                        pg.quit()
                         sys.exit()
 
         if volume_dragging:
@@ -504,5 +505,5 @@ def _settings_menu(clock, difficulty):
         draw_text(f"Costume Equipped: {costumes[current_costume_idx]}", font, BLACK, screen, 50, 350)
         draw_text(f"System Volume: {volume}% | Difficulty: {difficulties[diff_index]}", font, BLACK, screen, 50, 400)
 
-        pygame.display.flip()
+        pg.display.flip()
         clock.tick(FPS)

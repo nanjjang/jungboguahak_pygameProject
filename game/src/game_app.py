@@ -9,7 +9,7 @@ from src.constants import (
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
 )
-from src.game_input import read_frame_input
+from src.game_input import read_frame_input, _normalized_key
 from src.game_renderer import render_game
 from src.game_state import GameState
 from src.gameplay import update_gameplay
@@ -37,6 +37,7 @@ def run_game(difficulty=None):
     state = GameState(difficulty, SCREEN_HEIGHT - 50)
     running = True
     while running:
+        
         clock.tick(FPS)
         actions = read_frame_input()
         if actions.quit_requested:

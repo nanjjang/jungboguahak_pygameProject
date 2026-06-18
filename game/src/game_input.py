@@ -2,7 +2,6 @@
 
 import pygame as pg
 
-
 KEY_BINDINGS = {
     "jump": pg.K_SPACE,
     "inhale": pg.K_z,
@@ -46,12 +45,12 @@ KOREAN_TO_KEY = {
     "ㅣ": pg.K_l,
 }
 
-NAV_UP_KEYS = (pg.K_UP, pg.K_w)
-NAV_DOWN_KEYS = (pg.K_DOWN, pg.K_s)
-NAV_LEFT_KEYS = (pg.K_LEFT, pg.K_a)
-NAV_RIGHT_KEYS = (pg.K_RIGHT, pg.K_d)
+NAV_UP_KEYS = (pg.K_UP)
+NAV_DOWN_KEYS = (pg.K_DOWN)
+NAV_LEFT_KEYS = (pg.K_LEFT)
+NAV_RIGHT_KEYS = (pg.K_RIGHT)
 CONFIRM_KEYS = (pg.K_RETURN, pg.K_KP_ENTER, pg.K_SPACE)
-HOVER_KEYS = (pg.K_LSHIFT, pg.K_RSHIFT)
+HOVER_KEYS = (pg.K_LSHIFT)
 
 
 class FrameInput:
