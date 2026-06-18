@@ -96,11 +96,19 @@ DIFFICULTY_SETTINGS = {
     },
 }
 
+
+def make_frame_names(prefix, start, end):
+    frames = []
+    for index in range(start, end + 1):
+        frames.append(f"{prefix}{index}.png")
+    return frames
+
+
 # 적 종류별 스프라이트·AI·전투 설정
 # create_enemy()가 이 데이터를 읽어 속성별 적을 만든다.
 ENEMY_DATA = {
     "fire": {
-        "frames": [f"flame{i}.png" for i in range(1, 13)],
+        "frames": make_frame_names("flame", 1, 12),
         "ai": "chaser",
         "speed": 1.6,
         "patrol": 100,
@@ -112,7 +120,7 @@ ENEMY_DATA = {
         "cooldown": 1100,
     },
     "electric": {
-        "frames": [f"waddleDoo{i}.png" for i in range(1, 8)],
+        "frames": make_frame_names("waddleDoo", 1, 7),
         "ai": "shooter",
         "speed": 1.5,
         "patrol": 150,
@@ -124,7 +132,7 @@ ENEMY_DATA = {
         "cooldown": 1450,
     },
     "water": {
-        "frames": [f"bird{i}.png" for i in range(1, 6)],
+        "frames": make_frame_names("bird", 1, 5),
         "ai": "swooper",
         "speed": 2.3,
         "patrol": 200,
@@ -136,7 +144,7 @@ ENEMY_DATA = {
         "cooldown": 1250,
     },
     "earth": {
-        "frames": [f"pikey{i}.png" for i in range(1, 3)],
+        "frames": make_frame_names("pikey", 1, 2),
         "ai": "charger",
         "speed": 1.2,
         "patrol": 80,

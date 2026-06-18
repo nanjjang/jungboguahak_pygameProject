@@ -50,10 +50,10 @@ def _frame_index(open_progress):
 def _load_door_frames(kind):
     """문 프레임 이미지를 한 번만 불러와 캐시에 저장한다."""
     row = _DOOR_ROWS[kind]
-    return tuple(
-        _load_scaled(f"{row}_{index:02d}.png", DOOR_SCALE)
-        for index in range(1, 4)
-    )
+    frames = []
+    for index in range(1, 4):
+        frames.append(_load_scaled(f"{row}_{index:02d}.png", DOOR_SCALE))
+    return frames
 
 
 @lru_cache(maxsize=None)

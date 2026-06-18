@@ -41,7 +41,10 @@ def _c7(i):
 
 def _basic_frames(*indices):
     """기본 Kirby 프레임 여러 장을 한 번에 불러온다."""
-    return [_sprite(f"03_basic_kirby/frame_{i:03d}.png") for i in indices]
+    frames = []
+    for index in indices:
+        frames.append(_sprite(f"03_basic_kirby/frame_{index:03d}.png"))
+    return frames
 
 
 def _water_shot_frame(index):
@@ -102,21 +105,65 @@ class Kirby(pg.sprite.Sprite):
         )
 
         # Inhale, full-mouth movement, and spit/recovery.
-        self.inhale_frames = [_c7(i) for i in range(98, 104)]
+        self.inhale_frames = []
+        for index in range(98, 104):
+            self.inhale_frames.append(_c7(index))
+
         self.held_idle = _c7(111)
-        self.held_frames = [_c7(i) for i in range(112, 128)]
+        self.held_frames = []
+        for index in range(112, 128):
+            self.held_frames.append(_c7(index))
+
         self.held_jump_up = _c7(118)
         self.held_jump_down = _c7(119)
-        self.spit_frames = [_c7(i) for i in (107, 104, 108, 109)]
+        self.spit_frames = []
+        for index in (107, 104, 108, 109):
+            self.spit_frames.append(_c7(index))
+
         breath_horizontal = _basic_frames(3, 49, 49, 3)
+        water_move_frames = []
+        for index in range(331, 347):
+            frame_name = f"07_kirby_collection/frame_{index:03d}.png"
+            water_move_frames.append(_sprite(frame_name))
+
+        fire_vertical_frames = []
+        for index in (3, 49, 49, 3):
+            fire_vertical_frames.append(
+                _sprite(
+                    f"03_basic_kirby/frame_{index:03d}.png",
+                    canvas_size=(46, 46),
+                    angle=32,
+                )
+            )
+
+        fire_diagonal_frames = []
+        for index in (3, 49, 49, 3):
+            fire_diagonal_frames.append(
+                _sprite(
+                    f"03_basic_kirby/frame_{index:03d}.png",
+                    canvas_size=(44, 40),
+                    angle=-18,
+                )
+            )
+
+        water_shot_frames = []
+        for index in (258, 254, 255, 256, 257, 256, 255, 254):
+            water_shot_frames.append(_water_shot_frame(index))
+
+        electric_frames = []
+        for index in range(202, 214):
+            electric_frames.append(
+                _sprite(
+                    f"07_kirby_collection/frame_{index:03d}.png",
+                    canvas_size=(42, 52),
+                )
+            )
+
         self.element_forms = {
             # 일부 능력은 장착 중 Kirby의 기본 모습 자체가 달라진다.
             "water": {
                 "idle": _sprite("07_kirby_collection/frame_337.png"),
-                "move": [
-                    _sprite(f"07_kirby_collection/frame_{i:03d}.png")
-                    for i in range(331, 347)
-                ],
+                "move": water_move_frames,
                 "jump_up": _sprite("07_kirby_collection/frame_351.png"),
                 "jump_down": _sprite("07_kirby_collection/frame_357.png"),
             },
@@ -125,37 +172,14 @@ class Kirby(pg.sprite.Sprite):
             # 빔 사용 중 입 모양/자세 애니메이션이다.
             "fire": {
                 "horizontal": breath_horizontal,
-                "vertical": [
-                    _sprite(
-                        f"03_basic_kirby/frame_{i:03d}.png",
-                        canvas_size=(46, 46),
-                        angle=32,
-                    )
-                    for i in (3, 49, 49, 3)
-                ],
-                "diagonal": [
-                    _sprite(
-                        f"03_basic_kirby/frame_{i:03d}.png",
-                        canvas_size=(44, 40),
-                        angle=-18,
-                    )
-                    for i in (3, 49, 49, 3)
-                ],
+                "vertical": fire_vertical_frames,
+                "diagonal": fire_diagonal_frames,
             },
             "water": {
-                "horizontal": [
-                    _water_shot_frame(i)
-                    for i in (258, 254, 255, 256, 257, 256, 255, 254)
-                ],
+                "horizontal": water_shot_frames,
             },
             "electric": {
-                "horizontal": [
-                    _sprite(
-                        f"07_kirby_collection/frame_{i:03d}.png",
-                        canvas_size=(42, 52),
-                    )
-                    for i in range(202, 214)
-                ],
+                "horizontal": electric_frames,
             },
             "earth": {"horizontal": breath_horizontal},
         }
@@ -167,7 +191,7 @@ class Kirby(pg.sprite.Sprite):
                     "name": "잽",
                     "frames": _basic_frames(1, 64, 68, 66, 1),
                     "frame_ms": 36,
-                    "hit_frames": frozenset((2, 3)),
+                    "hit_frames": (2, 3),
                     "hitbox": (28, 2, 22),
                     "damage": 12,
                     "motion": {2: 1},
@@ -176,7 +200,7 @@ class Kirby(pg.sprite.Sprite):
                     "name": "크로스",
                     "frames": _basic_frames(1, 69, 72, 76, 77, 1),
                     "frame_ms": 38,
-                    "hit_frames": frozenset((2, 3, 4)),
+                    "hit_frames": (2, 3, 4),
                     "hitbox": (34, 0, 25),
                     "damage": 18,
                     "motion": {2: 2, 3: 1},
@@ -185,7 +209,7 @@ class Kirby(pg.sprite.Sprite):
                     "name": "브레이크 피니시",
                     "frames": _basic_frames(1, 55, 58, 68, 76, 77, 1),
                     "frame_ms": 40,
-                    "hit_frames": frozenset((3, 4, 5)),
+                    "hit_frames": (3, 4, 5),
                     "hitbox": (40, -4, 32),
                     "damage": 30,
                     "motion": {2: 2, 3: 3, 4: 2},
@@ -196,7 +220,7 @@ class Kirby(pg.sprite.Sprite):
                     "name": "단발 킥",
                     "frames": _basic_frames(1, 100, 101, 104, 1),
                     "frame_ms": 42,
-                    "hit_frames": frozenset((1, 2, 3)),
+                    "hit_frames": (1, 2, 3),
                     "hitbox": (32, -8, 34),
                     "damage": 16,
                     "motion": {1: 1, 2: 1},
@@ -205,7 +229,7 @@ class Kirby(pg.sprite.Sprite):
                     "name": "에어리얼 체인",
                     "frames": _basic_frames(1, 90, 91, 94, 96, 99, 1),
                     "frame_ms": 40,
-                    "hit_frames": frozenset((1, 3, 4, 5)),
+                    "hit_frames": (1, 3, 4, 5),
                     "hitbox": (38, -8, 38),
                     "damage": 23,
                     "motion": {2: 2, 3: 2, 4: 2},
@@ -214,7 +238,7 @@ class Kirby(pg.sprite.Sprite):
                     "name": "소머솔트 피니시",
                     "frames": _basic_frames(1, 94, 96, 100, 101, 104, 1),
                     "frame_ms": 42,
-                    "hit_frames": frozenset((1, 2, 4, 5, 6)),
+                    "hit_frames": (1, 2, 4, 5, 6),
                     "hitbox": (42, -12, 40),
                     "damage": 36,
                     "motion": {2: 2, 3: 2, 4: 3, 5: 2},
@@ -265,8 +289,8 @@ class Kirby(pg.sprite.Sprite):
         self.inhale_range = 180
 
         # 물기 / 능력
-        self.held_element: str | None = None
-        self.ability_stack: list[str] = []
+        self.held_element = None
+        self.ability_stack = []
         self.held_anim_idx = 0
         self.held_anim_t = 0
         self.held_anim_ms = 85
@@ -281,7 +305,7 @@ class Kirby(pg.sprite.Sprite):
         self.spit_anim_ms = 60
 
         # 근접 콤보
-        self.attack_kind: str | None = None
+        self.attack_kind = None
         self.attack_stage = -1
         self.attack_frame_idx = -1
         self.attack_frame_t = 0
@@ -293,8 +317,8 @@ class Kirby(pg.sprite.Sprite):
         self.attack_serial = 0
 
         # 기타
-        self.pending_projectiles: list[dict] = []
-        self._beams: dict[str, BeamEffect] = {}
+        self.pending_projectiles = []
+        self._beams = {}
         self.beam_kill_cd = 0
         self.font = load.get_korean_font(18)
 
@@ -370,9 +394,7 @@ class Kirby(pg.sprite.Sprite):
             return
         zone = self._get_inhale_rect()
         for enemy in list(enemies):
-            if not getattr(enemy, "inhaleable", True) or getattr(
-                enemy, "defeated", False
-            ):
+            if not enemy.inhaleable or enemy.defeated:
                 enemy.being_inhaled = False
                 continue
             if self.inhaling:
@@ -489,7 +511,7 @@ class Kirby(pg.sprite.Sprite):
 
         for el, beam in self._beams.items():
             # 빔은 Kirby 입 위치를 기준으로 매 프레임 새 위치를 받는다.
-            direction = getattr(beam, "direction", "horizontal")
+            direction = beam.direction
             mouth_x, mouth_y = self._beam_mouth_position(direction)
             if el == "fire":
                 beam.update(mouth_x, mouth_y, self.facing_right, kirby_rect=self.rect)
@@ -507,7 +529,7 @@ class Kirby(pg.sprite.Sprite):
         beam = self._beams.get(current)
         if current not in self.ability_frames or beam is None or not beam.active:
             return None
-        return current, getattr(beam, "direction", "horizontal")
+        return current, beam.direction
 
     def _equipped_form(self):
         """장착만 해도 모습이 달라지는 능력이 현재 능력인지 확인한다."""
@@ -539,7 +561,7 @@ class Kirby(pg.sprite.Sprite):
         if not beam.active:
             return None
         fr = self.facing_right
-        direction = getattr(beam, "direction", "horizontal")
+        direction = beam.direction
         mouth_x, mouth_y = self._beam_mouth_position(direction)
         if direction == "vertical":
             return pg.Rect(mouth_x - 20, mouth_y - 80, 40, 80)
@@ -798,23 +820,32 @@ class Kirby(pg.sprite.Sprite):
                 )
             else:
                 frame = self._tick_held_anim(moving)
-        elif (ability_state := self._active_beam_state()) is not None:
-            # 빔이 활성화되어 있으면 능력 사용 자세를 보여준다.
-            frame = self._tick_ability_anim(*ability_state)
-        elif (form_element := self._equipped_form()) is not None:
-            form = self.element_forms[form_element]
-            if self.is_jumping:
-                frame = form["jump_up"] if self.velocity_y < 0 else form["jump_down"]
-            elif moving:
-                frame = self._anim_frame(moving, form["move"])
-            else:
-                frame = form["idle"]
-        elif self.hovering and self.hover_held:
-            frame = self.hover_frame
-        elif not self.is_jumping:
-            frame = self._anim_frame(moving)
         else:
-            frame = self.jump_up if self.velocity_y < 0 else self.jump_down
+            ability_state = self._active_beam_state()
+            form_element = self._equipped_form()
+            if ability_state is not None:
+                # 빔이 활성화되어 있으면 능력 사용 자세를 보여준다.
+                frame = self._tick_ability_anim(
+                    ability_state[0],
+                    ability_state[1],
+                )
+            elif form_element is not None:
+                form = self.element_forms[form_element]
+                if self.is_jumping:
+                    if self.velocity_y < 0:
+                        frame = form["jump_up"]
+                    else:
+                        frame = form["jump_down"]
+                elif moving:
+                    frame = self._anim_frame(moving, form["move"])
+                else:
+                    frame = form["idle"]
+            elif self.hovering and self.hover_held:
+                frame = self.hover_frame
+            elif not self.is_jumping:
+                frame = self._anim_frame(moving)
+            else:
+                frame = self.jump_up if self.velocity_y < 0 else self.jump_down
 
         if not self.inhaling:
             # 흡입을 멈추면 다음 흡입 때 처음 프레임부터 시작한다.

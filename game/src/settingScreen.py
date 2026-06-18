@@ -80,6 +80,31 @@ def draw_text(text, font, color, surface, x, y):
     surface.blit(text_obj, text_rect)
 
 
+def previous_menu_index(selected_index, menu_items):
+    if selected_index == 7:
+        return len(menu_items) - 1
+    if selected_index == 0:
+        return 7
+    return selected_index - 1
+
+
+def next_menu_index(selected_index, menu_items):
+    if selected_index == 7:
+        return 0
+    if selected_index == len(menu_items) - 1:
+        return 7
+    return selected_index + 1
+
+
+def apply_screen_mode():
+    global screen
+
+    flags = 0
+    if is_fullscreen:
+        flags = pygame.FULLSCREEN
+    screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), flags)
+
+
 # ====================================================
 # 순서 관계없이 자유롭게 선택하는 캐릭터 세팅 화면
 # ====================================================
@@ -224,9 +249,17 @@ def show_settings_menu():
         pygame.draw.rect(screen, WHITE, (box_x, box_y, box_w, box_h), 3) 
         draw_text(f"[{costumes[current_costume_idx]}]", font, BLACK, screen, box_x + 35, box_y + 65)
 
-        name_color = YELLOW if selected_index == 7 else WHITE
-        if typing_mode: name_color = PINK
-        name_text = f"[ {nickname}_ ]" if typing_mode else f"[ {nickname} ]"
+        if selected_index == 7:
+            name_color = YELLOW
+        else:
+            name_color = WHITE
+        if typing_mode:
+            name_color = PINK
+
+        if typing_mode:
+            name_text = f"[ {nickname}_ ]"
+        else:
+            name_text = f"[ {nickname} ]"
         draw_text(name_text, font, name_color, screen, box_x + 10, box_y + box_h + 20)
 
         # 오른쪽 UI: 메인 설정 항목
@@ -235,24 +268,27 @@ def show_settings_menu():
             color = YELLOW if (i == selected_index and selected_index != 7) else WHITE
 
             val_text = ""
-            if i == 0: 
+            if i == 0:
                 val_text = f"{volume}%"
-            elif i == 1: 
+            elif i == 1:
                 val_text = f"< {difficulties[temp_diff_index]} >"
-            elif i == 2: 
+            elif i == 2:
                 val_text = "(Press Enter)"
-            elif i == 3: 
+            elif i == 3:
                 val_text = f"< {screen_sizes[size_index][0]}x{screen_sizes[size_index][1]} >"
-            elif i == 4: 
-                val_text = "< Fullscreen >" if is_fullscreen else "< Windowed >"
-            elif i == 5: 
+            elif i == 4:
+                if is_fullscreen:
+                    val_text = "< Fullscreen >"
+                else:
+                    val_text = "< Windowed >"
+            elif i == 5:
                 val_text = "(Press Enter)"
-            elif i == 6: 
+            elif i == 6:
                 val_text = "(Press Enter)"
 
             draw_text(item, font, color, screen, 320, 100 + i * 55)
             # 볼륨 바가 위치한 i == 0 항목이 아닐 때만 일반 텍스트 수치값 출력
-            if i != 0: 
+            if i != 0:
                 draw_text(val_text, font, color, screen, 800, 100 + i * 55)
 
         # ----------------------------------------------------
@@ -263,33 +299,65 @@ def show_settings_menu():
         pygame.draw.rect(screen, PINK, (VOLUME_BAR_RECT.x, VOLUME_BAR_RECT.y, filled_width, VOLUME_BAR_RECT.height))
         handle_x = VOLUME_BAR_RECT.x + filled_width
         handle_y = VOLUME_BAR_RECT.y + VOLUME_BAR_RECT.height // 2
-        pygame.draw.circle(screen, YELLOW if selected_index == 0 else WHITE, (handle_x, handle_y), 8)
-        
+        if selected_index == 0:
+            handle_color = YELLOW
+        else:
+            handle_color = WHITE
+        pygame.draw.circle(screen, handle_color, (handle_x, handle_y), 8)
+
         # 볼륨 바 오른쪽에 % 수치를 선명하게 다시 그려줍니다.
-        draw_text(f"{volume}%", font, YELLOW if selected_index == 0 else WHITE, screen, VOLUME_BAR_RECT.x + VOLUME_BAR_RECT.width + 15, VOLUME_BAR_RECT.y - 5)
+        draw_text(
+            f"{volume}%",
+            font,
+            handle_color,
+            screen,
+            VOLUME_BAR_RECT.x + VOLUME_BAR_RECT.width + 15,
+            VOLUME_BAR_RECT.y - 5,
+        )
 
         # 난이도 이탈 시 발생하는 승낙/거절 팝업창
         if confirm_mode:
-            popup_rect = pygame.Rect(SCREEN_WIDTH // 2 - 200, SCREEN_HEIGHT // 2 - 80, 400, 160)
+            popup_rect = pygame.Rect(
+                SCREEN_WIDTH // 2 - 200,
+                SCREEN_HEIGHT // 2 - 80,
+                400,
+                160,
+            )
             pygame.draw.rect(screen, DARK_GRAY, popup_rect)
             pygame.draw.rect(screen, PINK, popup_rect, 3)
-            draw_text("난이도 변경 사항을 적용하시겠습니까?", font, WHITE, screen, SCREEN_WIDTH // 2 - 160, SCREEN_HEIGHT // 2 - 40)
-            draw_text("[Enter] 승낙(적용)  /  [ESC] 거절(취소)", font, YELLOW, screen, SCREEN_WIDTH // 2 - 160, SCREEN_HEIGHT // 2 + 10)
+            draw_text(
+                "난이도 변경 사항을 적용하시겠습니까?",
+                font,
+                WHITE,
+                screen,
+                SCREEN_WIDTH // 2 - 160,
+                SCREEN_HEIGHT // 2 - 40,
+            )
+            draw_text(
+                "[Enter] 승낙(적용)  /  [ESC] 거절(취소)",
+                font,
+                YELLOW,
+                screen,
+                SCREEN_WIDTH // 2 - 160,
+                SCREEN_HEIGHT // 2 + 10,
+            )
 
         pygame.display.flip()
 
         # 볼륨 홀딩 처리
         if selected_index == 0 and pressed_direction is not None and not typing_mode:
             # 좌/우 키를 오래 누르면 볼륨이 일정 간격으로 계속 변하게 한다.
-            key_hold_time += dt  
-            if key_hold_time >= 600:  
+            key_hold_time += dt
+            if key_hold_time >= 600:
                 current_time = pygame.time.get_ticks()
-                if current_time - last_tick_time >= 100:  
-                    if pressed_direction == "LEFT": volume = max(0, volume - 5)
-                    elif pressed_direction == "RIGHT": volume = min(100, volume + 5)
+                if current_time - last_tick_time >= 100:
+                    if pressed_direction == "LEFT":
+                        volume = max(0, volume - 5)
+                    elif pressed_direction == "RIGHT":
+                        volume = min(100, volume + 5)
                     last_tick_time = current_time
         else:
-            key_hold_time = 0  
+            key_hold_time = 0
 
         mouse_pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
@@ -299,41 +367,54 @@ def show_settings_menu():
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 # 볼륨 바 근처를 클릭하면 드래그로 볼륨을 조절할 수 있다.
-                if VOLUME_BAR_RECT.collidepoint(mouse_pos) or pygame.Rect(VOLUME_BAR_RECT.x, VOLUME_BAR_RECT.y-5, VOLUME_BAR_RECT.width+10, VOLUME_BAR_RECT.height+10).collidepoint(mouse_pos):
+                drag_rect = pygame.Rect(
+                    VOLUME_BAR_RECT.x,
+                    VOLUME_BAR_RECT.y - 5,
+                    VOLUME_BAR_RECT.width + 10,
+                    VOLUME_BAR_RECT.height + 10,
+                )
+                if VOLUME_BAR_RECT.collidepoint(mouse_pos) or drag_rect.collidepoint(mouse_pos):
                     volume_dragging = True
-                    selected_index = 0 
+                    selected_index = 0
 
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
                 volume_dragging = False
 
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT and pressed_direction == "LEFT": pressed_direction = None
-                elif event.key == pygame.K_RIGHT and pressed_direction == "RIGHT": pressed_direction = None
+                if event.key == pygame.K_LEFT and pressed_direction == "LEFT":
+                    pressed_direction = None
+                elif event.key == pygame.K_RIGHT and pressed_direction == "RIGHT":
+                    pressed_direction = None
 
             if event.type == pygame.KEYDOWN:
                 if confirm_mode:
                     # 난이도 변경 후 다른 줄로 이동하려 할 때 적용/취소를 먼저 묻는다.
-                    if event.key == pygame.K_RETURN:  # 승낙
+                    if event.key == pygame.K_RETURN:
+                        # 승낙
                         diff_index = temp_diff_index
                         confirm_mode = False
                         if pending_direction == "UP":
-                            selected_index = 7 if selected_index == 0 else selected_index - 1
+                            selected_index = previous_menu_index(selected_index, menu_items)
                         elif pending_direction == "DOWN":
-                            selected_index = 0 if selected_index == len(menu_items)-1 else selected_index + 1
-                    elif event.key == pygame.K_ESCAPE: # 거절
+                            selected_index = next_menu_index(selected_index, menu_items)
+                    elif event.key == pygame.K_ESCAPE:
+                        # 거절
                         temp_diff_index = diff_index
                         confirm_mode = False
                         if pending_direction == "UP":
-                            selected_index = 7 if selected_index == 0 else selected_index - 1
+                            selected_index = previous_menu_index(selected_index, menu_items)
                         elif pending_direction == "DOWN":
-                            selected_index = 0 if selected_index == len(menu_items)-1 else selected_index + 1
+                            selected_index = next_menu_index(selected_index, menu_items)
                     continue
 
                 if typing_mode:
                     # 닉네임 입력 모드에서는 이동키 대신 문자 입력을 우선 처리한다.
-                    if event.key == pygame.K_RETURN: typing_mode = False
-                    elif event.key == pygame.K_BACKSPACE: nickname = nickname[:-1]
-                    elif len(nickname) < 15 and event.unicode.isalnum(): nickname += event.unicode
+                    if event.key == pygame.K_RETURN:
+                        typing_mode = False
+                    elif event.key == pygame.K_BACKSPACE:
+                        nickname = nickname[:-1]
+                    elif len(nickname) < 15 and event.unicode.isalnum():
+                        nickname += event.unicode
                     continue
 
                 if event.key == pygame.K_ESCAPE:
@@ -345,18 +426,14 @@ def show_settings_menu():
                         confirm_mode = True
                         pending_direction = "UP"
                     else:
-                        if selected_index == 7: selected_index = len(menu_items) - 1
-                        elif selected_index == 0: selected_index = 7
-                        else: selected_index -= 1
+                        selected_index = previous_menu_index(selected_index, menu_items)
 
                 elif event.key == pygame.K_DOWN:
                     if selected_index == 1 and diff_index != temp_diff_index:
                         confirm_mode = True
                         pending_direction = "DOWN"
                     else:
-                        if selected_index == 7: selected_index = 0
-                        elif selected_index == len(menu_items) - 1: selected_index = 7
-                        else: selected_index += 1
+                        selected_index = next_menu_index(selected_index, menu_items)
 
                 elif event.key == pygame.K_LEFT:
                     # 왼쪽 키는 현재 선택된 항목의 값을 줄이거나 이전 선택지로 이동한다.
@@ -370,10 +447,10 @@ def show_settings_menu():
                     elif selected_index == 3:
                         size_index = (size_index - 1) % len(screen_sizes)
                         SCREEN_WIDTH, SCREEN_HEIGHT = screen_sizes[size_index]
-                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN if is_fullscreen else 0)
+                        apply_screen_mode()
                     elif selected_index == 4:
                         is_fullscreen = not is_fullscreen
-                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN if is_fullscreen else 0)
+                        apply_screen_mode()
 
                 elif event.key == pygame.K_RIGHT:
                     # 오른쪽 키는 현재 선택된 항목의 값을 늘리거나 다음 선택지로 이동한다.
@@ -387,16 +464,19 @@ def show_settings_menu():
                     elif selected_index == 3:
                         size_index = (size_index + 1) % len(screen_sizes)
                         SCREEN_WIDTH, SCREEN_HEIGHT = screen_sizes[size_index]
-                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN if is_fullscreen else 0)
+                        apply_screen_mode()
                     elif selected_index == 4:
                         is_fullscreen = not is_fullscreen
-                        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN if is_fullscreen else 0)
+                        apply_screen_mode()
 
                 elif event.key == pygame.K_RETURN:
                     # ENTER는 하위 메뉴 진입, 재시작, 종료처럼 명령형 항목을 실행한다.
-                    if selected_index == 7: typing_mode = True
-                    elif selected_index == 2: show_character_setting_menu()
-                    elif selected_index == 5: menu_running = False
+                    if selected_index == 7:
+                        typing_mode = True
+                    elif selected_index == 2:
+                        show_character_setting_menu()
+                    elif selected_index == 5:
+                        menu_running = False
                     elif selected_index == 6:
                         pygame.quit()
                         sys.exit()

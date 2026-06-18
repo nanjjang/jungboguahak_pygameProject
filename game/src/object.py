@@ -1,6 +1,5 @@
 """스테이지 배경과 바닥 이미지를 그리는 오브젝트 파일."""
 
-from dataclasses import dataclass
 from pathlib import Path
 
 import pygame as pg
@@ -9,26 +8,6 @@ from src.constants import SCREEN_HEIGHT, SCREEN_WIDTH
 
 
 SCENERY_ROOT = Path(__file__).resolve().parent / "assets" / "scenery"
-
-
-@dataclass(frozen=True)
-class SceneryObject:
-    """카메라 이동에 맞춰 그려지는 배경 장식 오브젝트."""
-
-    image: pg.Surface
-    x: int
-    y: int
-    parallax: float = 1.0
-
-    def draw(self, surface, camera_x):
-        """월드 좌표 x를 카메라와 parallax 값으로 화면 좌표로 바꿔 그린다."""
-        screen_x = round(self.x - camera_x * self.parallax)
-        if screen_x > surface.get_width() + 80:
-            return
-        if screen_x + self.image.get_width() < -80:
-            return
-        surface.blit(self.image, (screen_x, self.y))
-
 
 class StageScenery:
     """스크롤 스테이지의 하늘과 바닥 이미지를 담당한다."""
@@ -73,3 +52,6 @@ class StageScenery:
 def _load_scenery(filename):
     """assets/scenery 폴더에서 배경 이미지를 읽는다."""
     return pg.image.load(SCENERY_ROOT / filename)
+
+
+# def make_obstacle():

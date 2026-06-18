@@ -529,7 +529,9 @@ def create_enemy(
 ):
     """상수 데이터와 이미지 파일을 읽어 Enemy 객체 하나를 생성한다."""
     data = ENEMY_DATA[element]
-    frames = [load.load_image(name) for name in data["frames"]]
+    frames = []
+    for name in data["frames"]:
+        frames.append(load.load_image(name))
     return Enemy(
         x,
         y,

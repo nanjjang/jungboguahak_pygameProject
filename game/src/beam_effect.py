@@ -92,7 +92,7 @@ class FireBeam:
         """HUD 에너지바에 쓰기 좋은 0.0~1.0 비율을 반환한다."""
         return self.energy / BEAM_MAX_ENERGY
 
-    def update(self, mouth_x, mouth_y, facing_right, kirby_rect=None, **_):
+    def update(self, mouth_x, mouth_y, facing_right, kirby_rect=None):
         """입 위치, 방향, 에너지 소모/회복, 애니메이션 프레임을 갱신한다."""
         self._mouth = (mouth_x, mouth_y)
         if self.active:
@@ -137,7 +137,8 @@ class FireBeam:
             rect = img.get_rect()
             rect.midbottom = (mx, my)
 
-        else:  # diagonal — 아래 대각선
+        else:
+            # diagonal 방향은 아래 대각선으로 뻗는다.
             img = raw if fr else pg.transform.flip(raw, True, False)
             rect = img.get_rect()
             if fr:
@@ -184,6 +185,7 @@ class BeamEffect:
         self.particles = []
         self.energy = BEAM_MAX_ENERGY
         self.active = False
+        self.direction = "horizontal"
         self._frames = _load_element_frames(element)
         self._frame_i = 0
         self._frame_t = 0.0
@@ -211,7 +213,7 @@ class BeamEffect:
         """남은 에너지 비율을 0.0~1.0 사이로 반환한다."""
         return self.energy / BEAM_MAX_ENERGY
 
-    def update(self, mouth_x, mouth_y, facing_right, **_):
+    def update(self, mouth_x, mouth_y, facing_right):
         """빔 위치, 에너지, 파티클 생성과 제거, 스프라이트 프레임을 갱신한다."""
         self._mouth = (mouth_x, mouth_y)
         self._facing = facing_right

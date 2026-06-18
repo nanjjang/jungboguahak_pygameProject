@@ -1,11 +1,8 @@
-"""pygame 이벤트를 게임에서 쓰기 쉬운 입력 상태로 바꾸는 파일."""
-
-from dataclasses import dataclass
+"""키보드 입력을 게임에서 쓰기 쉬운 값으로 정리하는 파일."""
 
 import pygame as pg
 
 
-# 게임 안에서 쓰는 행동 이름과 실제 키보드 키를 연결한다.
 KEY_BINDINGS = {
     "jump": pg.K_SPACE,
     "inhale": pg.K_z,
@@ -49,7 +46,6 @@ KOREAN_TO_KEY = {
     "ㅣ": pg.K_l,
 }
 
-# 메뉴 이동과 게임 이동에서 같이 쓰는 방향키 묶음이다.
 NAV_UP_KEYS = (pg.K_UP, pg.K_w)
 NAV_DOWN_KEYS = (pg.K_DOWN, pg.K_s)
 NAV_LEFT_KEYS = (pg.K_LEFT, pg.K_a)
@@ -58,45 +54,41 @@ CONFIRM_KEYS = (pg.K_RETURN, pg.K_KP_ENTER, pg.K_SPACE)
 HOVER_KEYS = (pg.K_LSHIFT, pg.K_RSHIFT)
 
 
-@dataclass
 class FrameInput:
-    """한 프레임 동안 눌린 키와 계속 누르고 있는 키를 모아 둔 입력 결과."""
+    """한 프레임 동안의 입력 상태."""
 
-    # 창 닫기처럼 게임 전체 흐름을 끝내는 입력이다.
-    quit_requested: bool = False
+    def __init__(self):
+        self.quit_requested = False
 
-    # pressed는 이번 프레임에 한 번 눌린 입력이다.
-    up_pressed: bool = False
-    down_pressed: bool = False
-    left_pressed: bool = False
-    right_pressed: bool = False
-    confirm_pressed: bool = False
-    settings_pressed: bool = False
-    title_quit_pressed: bool = False
-    restart_requested: bool = False
+        self.up_pressed = False
+        self.down_pressed = False
+        self.left_pressed = False
+        self.right_pressed = False
+        self.confirm_pressed = False
+        self.settings_pressed = False
+        self.title_quit_pressed = False
+        self.restart_requested = False
 
-    # 공격/상호작용처럼 한 번 누르는 순간이 중요한 입력이다.
-    spit_pressed: bool = False
-    gulp_pressed: bool = False
-    punch_pressed: bool = False
-    kick_pressed: bool = False
-    enter_pressed: bool = False
+        self.spit_pressed = False
+        self.gulp_pressed = False
+        self.punch_pressed = False
+        self.kick_pressed = False
+        self.enter_pressed = False
 
-    # held는 키를 누르고 있는 동안 매 프레임 True가 되는 입력이다.
-    up_held: bool = False
-    down_held: bool = False
-    left_held: bool = False
-    right_held: bool = False
-    jump_held: bool = False
-    hover_modifier_held: bool = False
-    inhale_held: bool = False
-    beam_held: bool = False
-    punch_held: bool = False
-    kick_held: bool = False
+        self.up_held = False
+        self.down_held = False
+        self.left_held = False
+        self.right_held = False
+        self.jump_held = False
+        self.hover_modifier_held = False
+        self.inhale_held = False
+        self.beam_held = False
+        self.punch_held = False
+        self.kick_held = False
 
 
 def read_frame_input():
-    """pygame 이벤트 큐와 현재 키 상태를 읽어 FrameInput으로 반환한다."""
+    """pygame 이벤트와 현재 키 상태를 읽어서 FrameInput으로 반환한다."""
     actions = FrameInput()
     for event in pg.event.get():
         if event.type == pg.QUIT:
@@ -106,24 +98,9 @@ def read_frame_input():
             continue
 
         key_const = _normalized_key(event)
-        # KEYDOWN 이벤트는 "방금 눌렀다"는 의미의 pressed 입력으로 저장한다.
-        actions.up_pressed |= key_const in NAV_UP_KEYS
-        actions.down_pressed |= key_const in NAV_DOWN_KEYS
-        actions.left_pressed |= key_const in NAV_LEFT_KEYS
-        actions.right_pressed |= key_const in NAV_RIGHT_KEYS
-        actions.confirm_pressed |= key_const in CONFIRM_KEYS
-        actions.settings_pressed |= key_const == KEY_BINDINGS["settings"]
-        actions.title_quit_pressed |= key_const == KEY_BINDINGS["quit_title"]
-        actions.restart_requested |= key_const == KEY_BINDINGS["restart"]
-
-        actions.spit_pressed |= key_const == KEY_BINDINGS["spit"]
-        actions.gulp_pressed |= key_const == KEY_BINDINGS["gulp"]
-        actions.punch_pressed |= key_const == KEY_BINDINGS["punch"]
-        actions.kick_pressed |= key_const == KEY_BINDINGS["kick"]
-        actions.enter_pressed |= key_const == KEY_BINDINGS["stage_enter"]
+        _check_pressed_key(actions, key_const)
 
     held = pg.key.get_pressed()
-    # get_pressed()는 현재 누르고 있는 키를 알려 주므로 이동/점프 유지에 쓴다.
     actions.up_held = _held_any(held, NAV_UP_KEYS)
     actions.down_held = _held_any(held, NAV_DOWN_KEYS)
     actions.left_held = _held_any(held, NAV_LEFT_KEYS)
@@ -137,11 +114,46 @@ def read_frame_input():
     return actions
 
 
+def _check_pressed_key(actions, key):
+    if key in NAV_UP_KEYS:
+        actions.up_pressed = True
+    if key in NAV_DOWN_KEYS:
+        actions.down_pressed = True
+    if key in NAV_LEFT_KEYS:
+        actions.left_pressed = True
+    if key in NAV_RIGHT_KEYS:
+        actions.right_pressed = True
+    if key in CONFIRM_KEYS:
+        actions.confirm_pressed = True
+
+    if key == KEY_BINDINGS["settings"]:
+        actions.settings_pressed = True
+    elif key == KEY_BINDINGS["quit_title"]:
+        actions.title_quit_pressed = True
+    elif key == KEY_BINDINGS["restart"]:
+        actions.restart_requested = True
+    elif key == KEY_BINDINGS["spit"]:
+        actions.spit_pressed = True
+    elif key == KEY_BINDINGS["gulp"]:
+        actions.gulp_pressed = True
+    elif key == KEY_BINDINGS["punch"]:
+        actions.punch_pressed = True
+    elif key == KEY_BINDINGS["kick"]:
+        actions.kick_pressed = True
+    elif key == KEY_BINDINGS["stage_enter"]:
+        actions.enter_pressed = True
+
+
 def _normalized_key(event):
     """한글 입력 상태에서도 같은 키가 눌린 것처럼 처리한다."""
-    return KOREAN_TO_KEY.get(getattr(event, "unicode", ""), event.key)
+    if hasattr(event, "unicode") and event.unicode in KOREAN_TO_KEY:
+        return KOREAN_TO_KEY[event.unicode]
+    return event.key
 
 
 def _held_any(held, keys):
     """여러 키 후보 중 하나라도 눌려 있으면 True를 반환한다."""
-    return any(held[key] for key in keys)
+    for key in keys:
+        if held[key]:
+            return True
+    return False

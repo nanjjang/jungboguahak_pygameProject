@@ -5,7 +5,7 @@ import pygame as pg
 from src.constants import DIFFICULTY_SETTINGS
 from src.enemy import create_enemy
 from src.object import StageScenery
-from src.stage_clear_animation import animation_duration_ms
+from src.delay_goingNext import animation_duration_ms
 from src.stage_door import DOOR_ANIMATION_MS, draw_stage_door
 
 ROUTE_WIDTHS = {
@@ -93,7 +93,7 @@ class StageManager:
 
         now = pg.time.get_ticks()
         if self.transitioning:
-            # 클리어 연출 시간이 끝날 때까지는 다음 스테이지를 만들지 않는다.
+            # 클리어 하면 일정 시간 후 다음 스테이지로 이동
             if now - self.clear_started_at < animation_duration_ms():
                 return None
             self._advance()

@@ -64,7 +64,12 @@ def draw_end_overlay(surface, title, subtitle, large_font, font):
 
 def _draw_boss_hud(surface, state, font):
     """보스가 있는 스테이지에서만 보스 체력바를 그린다."""
-    boss = next((enemy for enemy in state.enemies if enemy.is_boss), None)
+    boss = None
+    for enemy in state.enemies:
+        if enemy.is_boss:
+            boss = enemy
+            break
+
     if boss is None:
         return
 
