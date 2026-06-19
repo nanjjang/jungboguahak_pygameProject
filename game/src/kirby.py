@@ -34,7 +34,7 @@ def _sprite(name, authored_left=False, canvas_size=_SPRITE_SIZE, angle=0):
     return canvas
 
 
-def _c7(i):
+def _left_to_right(i):
     """왼쪽을 보고 있는 07 컬렉션 프레임을 오른쪽 기준으로 뒤집어 불러온다."""
     return _sprite(f"07_kirby_collection/frame_{i:03d}.png", authored_left=True)
 
@@ -175,18 +175,18 @@ class Kirby(pg.sprite.Sprite):
         # Inhale, full-mouth movement, and spit/recovery.
         self.inhale_frames = []
         for index in range(98, 104):
-            self.inhale_frames.append(_c7(index))
+            self.inhale_frames.append(_left_to_right(index))
 
-        self.held_idle = _c7(111)
+        self.held_idle = _left_to_right(111)
         self.held_frames = []
         for index in range(112, 128):
-            self.held_frames.append(_c7(index))
+            self.held_frames.append(_left_to_right(index))
 
-        self.held_jump_up = _c7(118)
-        self.held_jump_down = _c7(119)
+        self.held_jump_up = _left_to_right(118)
+        self.held_jump_down = _left_to_right(119)
         self.spit_frames = []
         for index in (107, 104, 108, 109):
-            self.spit_frames.append(_c7(index))
+            self.spit_frames.append(_left_to_right(index))
 
         breath_horizontal = _basic_frames(3, 49, 49, 3)
         water_move_frames = []
@@ -386,6 +386,8 @@ class Kirby(pg.sprite.Sprite):
         controls,
         enemies=None,
         *,
+        terrain_rects=None,
+        ground_y=None,
         spit_pressed=False,
         gulp_pressed=False,
         punch_pressed=False,
@@ -428,7 +430,12 @@ class Kirby(pg.sprite.Sprite):
             self._on_gulp()
         self._update_beams(controls.beam_held, controls)
         moving = self._move(controls)
-        self._apply_gravity(self.jump_held, self.hover_held)
+        self._apply_gravity(
+            self.jump_held,
+            self.hover_held,
+            terrain_rects=terrain_rects,
+            ground_y=ground_y,
+        )
         self._update_image(moving)
 
     # ---------------------------------------------------------------- helpers
@@ -913,8 +920,27 @@ class Kirby(pg.sprite.Sprite):
         return self.walk_animation.frame()
 
     # ---------------------------------------------------------------- gravity
-    def _apply_gravity(self, jump_held, hover_held=False):
+    def _apply_gravity(
+        self,
+        jump_held,
+        hover_held=False,
+        terrain_rects=None,
+        ground_y=None,
+    ):
         """점프, 공중 재점프, 호버, 낙하, 바닥 충돌을 처리한다."""
+        terrain_rects = terrain_rects or ()
+        floor_y = SCREEN_HEIGHT - 50 if ground_y is None else ground_y
+        if not self.is_jumping:
+            walking_floor = self._walkable_floor(terrain_rects, floor_y)
+            if walking_floor is None:
+                if self.rect.bottom < floor_y:
+                    # 발판 끝에서 걸어 나가면 바로 낙하 상태로 전환한다.
+                    self.is_jumping = True
+                    self.velocity_y = max(self.velocity_y, 2.0)
+            else:
+                self.rect.bottom = walking_floor
+                self.y_float = float(self.rect.y)
+
         just_pressed = jump_held and not self._prev_jump_held
         self._prev_jump_held = jump_held
 
@@ -935,10 +961,18 @@ class Kirby(pg.sprite.Sprite):
                 self.velocity_y = min(self.velocity_y + 0.08, 1.2)
             else:
                 self.velocity_y += self.gravity
+            previous_bottom = self.rect.bottom
             self.y_float += self.velocity_y
             self.rect.y = int(self.y_float)
+        else:
+            previous_bottom = self.rect.bottom
 
-        ground = SCREEN_HEIGHT - 50 - self.rect.height
+        landing_y = self._landing_floor(
+            terrain_rects,
+            floor_y,
+            previous_bottom,
+        )
+        ground = landing_y - self.rect.height
         if self.rect.y >= ground:
             # 바닥에 닿으면 점프 관련 상태를 모두 정리한다.
             self.rect.y = ground
@@ -951,15 +985,57 @@ class Kirby(pg.sprite.Sprite):
             self.y_float = 10.0
             self.velocity_y = 0.0
 
+    def _walkable_floor(self, terrain_rects, ground_y):
+        """걸어갈 때 닿을 수 있는 가까운 지형 높이를 찾는다."""
+        floors = []
+        max_step_up = 26
+        max_step_down = 34
+
+        ground_delta = ground_y - self.rect.bottom
+        if -max_step_up <= ground_delta <= max_step_down or self.rect.bottom >= ground_y:
+            floors.append(ground_y)
+
+        for rect in terrain_rects:
+            if not self._overlaps_x(rect):
+                continue
+            delta = rect.top - self.rect.bottom
+            if -max_step_up <= delta <= max_step_down:
+                floors.append(rect.top)
+
+        if not floors:
+            return None
+        return min(floors)
+
+    def _landing_floor(self, terrain_rects, ground_y, previous_bottom):
+        """이번 프레임에 착지할 수 있는 가장 가까운 바닥 높이를 찾는다."""
+        landing_y = ground_y
+        if self.velocity_y < 0:
+            return landing_y
+
+        for rect in terrain_rects:
+            if not self._overlaps_x(rect):
+                continue
+            if previous_bottom > rect.top + 8:
+                continue
+            if self.rect.bottom < rect.top:
+                continue
+            if rect.top < landing_y:
+                landing_y = rect.top
+        return landing_y
+
+    def _overlaps_x(self, rect):
+        """발밑 중심이 발판 위에 있을 때만 실제 지지로 본다."""
+        foot_x = self.rect.centerx
+        return rect.left + 3 <= foot_x <= rect.right - 3
+
     # ---------------------------------------------------------------- beam draw
     def draw_beams(self, surface, camera_x=0):
-        """활성화된 모든 빔과 현재 빔 에너지바를 그린다."""
+        """활성화된 모든 빔을 그린다."""
         for beam in self._beams.values():
             beam.draw(surface, camera_x)
-        self._draw_beam_energy(surface, camera_x)
 
-    def _draw_beam_energy(self, surface, camera_x=0):
-        """현재 능력 빔의 남은 에너지를 Kirby 아래쪽에 작은 바로 표시한다."""
+    def _draw_beam_energy(self, surface):
+        """현재 능력 빔의 남은 에너지를 HUD에 작은 바로 표시한다."""
         if self.is_empty():
             return
         current = self.peek()
@@ -967,9 +1043,8 @@ class Kirby(pg.sprite.Sprite):
             return
         beam = self._beams[current]
         color = ELEMENTS[current]["color"]
-        bar_w, bar_h = 60, 8
-        bx = self.rect.centerx - round(camera_x) - bar_w // 2
-        by = self.rect.bottom + 5
+        bar_w, bar_h = 180, 8
+        bx, by = 10, 42
         pg.draw.rect(surface, (40, 40, 40), (bx - 1, by - 1, bar_w + 2, bar_h + 2))
         filled = int(bar_w * beam.energy_ratio)
         if filled > 0:
@@ -1028,7 +1103,7 @@ class Kirby(pg.sprite.Sprite):
             blue = 140 + step * 20
             pg.draw.circle(surface, (30, 140, blue), (int(x), y), radius)
 
-    def draw_hud(self, surface):
+    def draw_UI(self, surface):
         """능력 스택, 조작 안내, 현재 콤보 상태를 화면에 표시한다."""
         font = self.font
 
@@ -1079,3 +1154,4 @@ class Kirby(pg.sprite.Sprite):
                 pg.draw.circle(surface, (255, 255, 255), (cx, cy), r, 2)
             lbl = font.render(el["label"], True, (255, 255, 255))
             surface.blit(lbl, lbl.get_rect(center=(cx, cy)))
+        self._draw_beam_energy(surface)

@@ -30,34 +30,35 @@ KEY_SCANCODES = {
     "stage_enter": pg.KSCAN_UP,
 }
 
-KOREAN_TO_KEY = {
-    "ㄱ": pg.K_r,
-    "ㄴ": pg.K_s,
-    "ㄷ": pg.K_e,
-    "ㄹ": pg.K_f,
-    "ㅁ": pg.K_a,
-    "ㅂ": pg.K_q,
-    "ㅅ": pg.K_t,
-    "ㅇ": pg.K_d,
-    "ㅈ": pg.K_w,
-    "ㅊ": pg.K_c,
-    "ㅋ": pg.K_z,
-    "ㅌ": pg.K_x,
-    "ㅍ": pg.K_v,
-    "ㅎ": pg.K_g,
-    "ㅏ": pg.K_k,
-    "ㅐ": pg.K_o,
-    "ㅑ": pg.K_i,
-    "ㅓ": pg.K_j,
-    "ㅔ": pg.K_p,
-    "ㅕ": pg.K_u,
-    "ㅗ": pg.K_h,
-    "ㅛ": pg.K_y,
-    "ㅜ": pg.K_n,
-    "ㅠ": pg.K_b,
-    "ㅡ": pg.K_m,
-    "ㅣ": pg.K_l,
-}
+# 저의 처절한 하드코딩 시도를 기억해주세요 ㅜㅜ
+# KOREAN_TO_KEY = {
+#     "ㄱ": pg.K_r,
+#     "ㄴ": pg.K_s,
+#     "ㄷ": pg.K_e,
+#     "ㄹ": pg.K_f,
+#     "ㅁ": pg.K_a,
+#     "ㅂ": pg.K_q,
+#     "ㅅ": pg.K_t,
+#     "ㅇ": pg.K_d,
+#     "ㅈ": pg.K_w,
+#     "ㅊ": pg.K_c,
+#     "ㅋ": pg.K_z,
+#     "ㅌ": pg.K_x,
+#     "ㅍ": pg.K_v,
+#     "ㅎ": pg.K_g,
+#     "ㅏ": pg.K_k,
+#     "ㅐ": pg.K_o,
+#     "ㅑ": pg.K_i,
+#     "ㅓ": pg.K_j,
+#     "ㅔ": pg.K_p,
+#     "ㅕ": pg.K_u,
+#     "ㅗ": pg.K_h,
+#     "ㅛ": pg.K_y,
+#     "ㅜ": pg.K_n,
+#     "ㅠ": pg.K_b,
+#     "ㅡ": pg.K_m,
+#     "ㅣ": pg.K_l,
+# }
 
 NAV_UP_KEYS = (pg.K_UP,)
 NAV_DOWN_KEYS = (pg.K_DOWN,)
@@ -193,12 +194,9 @@ def _check_pressed_key(actions, key):
 
 
 def _normalized_key(event):
-    """한글 입력 상태에서도 같은 키가 눌린 것처럼 처리한다."""
     scancode = getattr(event, "scancode", None)
     if scancode in SCANCODE_TO_KEY:
         return SCANCODE_TO_KEY[scancode]
-    if hasattr(event, "unicode") and event.unicode in KOREAN_TO_KEY:
-        return KOREAN_TO_KEY[event.unicode]
     return event.key
 
 

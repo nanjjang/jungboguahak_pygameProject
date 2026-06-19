@@ -4,7 +4,23 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b998e4be-2d36-4a18-871b-21d3a29b6124" name="변경" comment="" />
+    <list default="true" id="b998e4be-2d36-4a18-871b-21d3a29b6124" name="변경" comment="">
+      <change afterPath="$PROJECT_DIR$/Docs/img_2.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Docs/report.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/errorFix_withClaude.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/설계.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/주제.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/enemy_system.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/enemy_system.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/game_input.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/game_input.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/game_renderer.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/game_renderer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/game_state.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/game_state.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/gameplay.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/gameplay.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/kirby.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/kirby.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/object.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/object.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/stage.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/stage.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/stage_door.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/stage_door.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -34,61 +50,61 @@
 }</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.514059554979911" />
-      <entry key="MS500" value="2.1970904360480237" />
-      <entry key="S2" value="7.048151725054371" />
-      <entry key="S5" value="15.280472784667822" />
-      <entry key="S10" value="26.678180013622026" />
-      <entry key="S30" value="56.407696233742996" />
-      <entry key="S60" value="74.43255765602753" />
-      <entry key="M2" value="88.26465914781859" />
-      <entry key="M5" value="111.34717617884972" />
-      <entry key="M10" value="144.16011914679538" />
-      <entry key="M15" value="167.58086478976387" />
-      <entry key="M30" value="211.02625248616758" />
-      <entry key="H1" value="270.45373589818007" />
-      <entry key="H2" value="384.6165836660198" />
-      <entry key="H4" value="631.4560426192077" />
-      <entry key="D1" value="1429.5354874934085" />
-      <entry key="W1" value="1714.3960575419455" />
+      <entry key="MS100" value="1.1017866850411753" />
+      <entry key="MS500" value="1.8878329664504356" />
+      <entry key="S2" value="3.0712381942303826" />
+      <entry key="S5" value="4.404026236878025" />
+      <entry key="S10" value="6.844113380507731" />
+      <entry key="S30" value="12.994021575571734" />
+      <entry key="S60" value="17.02514485364351" />
+      <entry key="M2" value="21.373324037069622" />
+      <entry key="M5" value="28.749088245521662" />
+      <entry key="M10" value="39.810148634065335" />
+      <entry key="M15" value="52.315783046798416" />
+      <entry key="M30" value="92.24522080040282" />
+      <entry key="H1" value="185.31813250378738" />
+      <entry key="H2" value="384.1748932967572" />
+      <entry key="H4" value="726.1024656782605" />
+      <entry key="D1" value="1842.6357054740147" />
+      <entry key="W1" value="2286.254794208054" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="1.0570256447315017E-278" />
-      <entry key="S2" value="3.206427177975912E-70" />
-      <entry key="S5" value="1.5937072649866006E-28" />
-      <entry key="S10" value="1.2624211915943863E-14" />
-      <entry key="S30" value="2.3284563025314792E-5" />
-      <entry key="S60" value="0.004825408068268919" />
-      <entry key="M2" value="0.06946515722562585" />
-      <entry key="M5" value="0.34413478263466524" />
-      <entry key="M10" value="0.5920922766876491" />
-      <entry key="M15" value="0.739501245398893" />
-      <entry key="M30" value="1.1360978664425456" />
-      <entry key="H1" value="1.8803298169531064" />
-      <entry key="H2" value="3.023979977492898" />
-      <entry key="H4" value="4.75071654754477" />
-      <entry key="D1" value="9.233425621152627" />
-      <entry key="W1" value="10.718837044074679" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="1.4494345043784888E-99" />
+      <entry key="S5" value="6.7857461513749115E-40" />
+      <entry key="S10" value="6.020904048898894E-20" />
+      <entry key="S30" value="1.2745182427288957E-6" />
+      <entry key="S60" value="0.002759647956925339" />
+      <entry key="M2" value="0.1286098166223711" />
+      <entry key="M5" value="1.290557524996071" />
+      <entry key="M10" value="2.831775880877137" />
+      <entry key="M15" value="3.8062467963586712" />
+      <entry key="M30" value="5.581435200741036" />
+      <entry key="H1" value="7.558156866140748" />
+      <entry key="H2" value="10.040770900682478" />
+      <entry key="H4" value="13.178981473937906" />
+      <entry key="D1" value="20.815291881516245" />
+      <entry key="W1" value="23.484219628951738" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.4624851510509667" />
-      <entry key="MS500" value="2.1820604151472556" />
-      <entry key="S2" value="7.032738692226647" />
-      <entry key="S5" value="15.252821849158737" />
-      <entry key="S10" value="26.64712276153011" />
-      <entry key="S30" value="56.38716464815921" />
-      <entry key="S60" value="74.4246541785876" />
-      <entry key="M2" value="88.32653427308539" />
-      <entry key="M5" value="111.68704755703406" />
-      <entry key="M10" value="144.74931250158443" />
-      <entry key="M15" value="168.318003470295" />
-      <entry key="M30" value="212.16044895239577" />
-      <entry key="H1" value="272.33237833661644" />
-      <entry key="H2" value="387.6389125726732" />
-      <entry key="H4" value="636.2049119865101" />
-      <entry key="D1" value="1438.7680167397036" />
-      <entry key="W1" value="1725.1147361318644" />
+      <entry key="MS100" value="0.9809979723535646" />
+      <entry key="MS500" value="1.498805405020744" />
+      <entry key="S2" value="2.568630444883209" />
+      <entry key="S5" value="4.073528436549005" />
+      <entry key="S10" value="6.642015121897962" />
+      <entry key="S30" value="12.904306322760549" />
+      <entry key="S60" value="16.966135367962224" />
+      <entry key="M2" value="21.453511921140834" />
+      <entry key="M5" value="30.00677693132834" />
+      <entry key="M10" value="42.620217788815765" />
+      <entry key="M15" value="56.105669380768596" />
+      <entry key="M30" value="97.81693731949757" />
+      <entry key="H1" value="192.8705162640698" />
+      <entry key="H2" value="394.21194555633053" />
+      <entry key="H4" value="739.2786457100989" />
+      <entry key="D1" value="1863.449840917572" />
+      <entry key="W1" value="2309.7388058997058" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -103,6 +119,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.kirby.executor": "Debug",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
@@ -144,11 +161,22 @@
       <workItem from="1781417694484" duration="10290000" />
       <workItem from="1781479780690" duration="6634000" />
       <workItem from="1781652467773" duration="7675000" />
-      <workItem from="1781837063017" duration="3138000" />
+      <workItem from="1781837063017" duration="12534000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

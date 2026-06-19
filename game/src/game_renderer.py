@@ -38,7 +38,7 @@ def render_game(surface, state, font, large_font):
     for number in state.damage_numbers:
         number.draw(surface, state.camera_x)
 
-    state.player.draw_hud(surface)
+    state.player.draw_UI(surface)
     draw_status_hud(surface, state, font, large_font)
     if state.player.game_over:
         # 게임오버나 전체 클리어 상태에서는 반투명 안내 화면을 덮어 그린다.

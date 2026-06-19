@@ -22,6 +22,8 @@ def _update_active_stage(state, actions):
     player.update(
         actions,
         state.enemies,
+        terrain_rects=state.stage.terrain_rects,
+        ground_y=state.stage.floor_y,
         spit_pressed=actions.spit_pressed,
         gulp_pressed=actions.gulp_pressed,
         punch_pressed=actions.punch_pressed,
@@ -53,6 +55,14 @@ def _update_active_stage(state, actions):
 
 
 def _update_stage_transition(state, actions):
+    if actions.enter_pressed and not state.stage.transitioning:
+        room_enemies = state.stage.try_enter_local_door(state.player)
+        if room_enemies is not None:
+            state.enter_room(room_enemies)
+            return
+
+        # 로컬 문이 없을 때만 스테이지 출구 문 입장을 시도한다.
+
     replacement = state.stage.update(
         state.enemies,
         player_rect=state.player.rect,

@@ -37,11 +37,20 @@ def update_enemies(state):
         state.difficulty,
     )
     for enemy in list(state.enemies):
+        enemy_ground_y = state.stage.floor_at_x(
+            enemy.rect.centerx,
+            preferred_y=enemy.rect.bottom,
+        )
         enemy.update(
             kirby=state.player,
-            ground_y=state.ground_y,
+            ground_y=enemy_ground_y,
             engage=enemy in active_enemies,
         )
+        if getattr(enemy, "ai_type", None) != "swooper" and not enemy.defeated:
+            enemy.rect.bottom = state.stage.floor_at_x(
+                enemy.rect.centerx,
+                preferred_y=enemy.rect.bottom,
+            )
         for shot in enemy.pending_projectiles:
             # Enemy 객체 내부에 임시 저장된 발사체를 실제 게임 상태로 옮긴다.
             state.enemy_projectiles.add(shot)

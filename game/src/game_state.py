@@ -14,9 +14,10 @@ def _create_run(difficulty, ground_y, world=1, substage=1):
     stage.substage = substage
     stage.completed = False
     enemies = stage.spawn_current()
-    player = Kirby(x=70, y=ground_y - 26)
+    spawn_x, spawn_bottom = stage.spawn_position
+    player = Kirby(x=spawn_x, y=spawn_bottom - 26)
     player.set_world_bounds(stage.world_width)
-    player.set_spawn_point(70, ground_y - player.rect.height)
+    player.set_spawn_point(spawn_x, spawn_bottom - player.rect.height)
     player.reset_position()
     return player, stage, enemies
 
@@ -88,13 +89,24 @@ class GameState:
             return
 
         self.player.set_world_bounds(self.stage.world_width)
+        spawn_x, spawn_bottom = self.stage.spawn_position
         self.player.set_spawn_point(
-            70,
-            self.ground_y - self.player.rect.height,
+            spawn_x,
+            spawn_bottom - self.player.rect.height,
         )
         self.player.reset_position()
         # 새 스테이지 시작 직후 바로 맞지 않도록 짧은 무적 시간을 준다.
         self.player.invulnerable_until = pg.time.get_ticks() + 900
+
+    def enter_room(self, enemies):
+        """동굴문으로 다른 방에 들어갈 때 전투 상태와 카메라를 정리한다."""
+        self.enemies = enemies
+        self.projectiles.empty()
+        self.enemy_projectiles.empty()
+        self.damage_numbers.clear()
+        self.camera_x = 0.0
+        self.player.set_world_bounds(self.stage.world_width)
+        self.player.invulnerable_until = pg.time.get_ticks() + 650
 
     def update_camera(self, reset=False):
         """플레이어가 화면 중앙 근처에 오도록 가로 카메라 위치를 계산한다."""
