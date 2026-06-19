@@ -1,5 +1,3 @@
-"""키보드 입력을 게임에서 쓰기 쉬운 값으로 정리하는 파일."""
-
 import pygame as pg
 
 KEY_BINDINGS = {

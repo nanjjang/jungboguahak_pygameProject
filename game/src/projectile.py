@@ -1,4 +1,4 @@
-"""Kirby가 뱉거나 능력으로 만든 발사체 Sprite를 정의한다."""
+# Kirby가 뱉거나 능력으로 만든 발사체 Sprite를 정의한다.
 
 import pygame as pg
 import load

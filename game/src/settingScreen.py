@@ -1,4 +1,4 @@
-"""게임 중 ESC로 들어가는 설정 메뉴와 캐릭터 설정 메뉴."""
+# 게임 중 ESC로 들어가는 설정 메뉴와 캐릭터 설정 메뉴.
 
 import pygame as pg
 import load

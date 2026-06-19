@@ -6,7 +6,7 @@ from src.constants import DIFFICULTY_SETTINGS
 from src.enemy import create_enemy
 from src.object import StageScenery
 from src.delay_goingNext import animation_duration_ms
-from src.stage_door import DOOR_ANIMATION_MS, draw_cave_door, draw_stage_door
+from src.door_animation import DoorAnimation
 from src.stage_map import build_stage_layout, local_door_rect
 from src import sfx
 
@@ -37,8 +37,7 @@ class StageManager:
         self.world_width = self.layout.world_width
         self.goal_rect = self._make_goal_rect()
         self.scenery = self._make_scenery()
-        self.door_open = False
-        self.door_changed_at = pg.time.get_ticks() - DOOR_ANIMATION_MS
+        self.door_animation = DoorAnimation()
 
     @property
     def label(self):
@@ -64,8 +63,7 @@ class StageManager:
         self.world_width = self.layout.world_width
         self.goal_rect = self._make_goal_rect()
         self.scenery = self._make_scenery()
-        self.door_open = False
-        self.door_changed_at = pg.time.get_ticks() - DOOR_ANIMATION_MS
+        self.door_animation.reset()
         if self.is_boss_stage:
             return [self._spawn_boss()]
         return self._spawn_route_enemies()
@@ -145,8 +143,7 @@ class StageManager:
         self.world_width = self.layout.world_width
         self.goal_rect = self._make_goal_rect()
         self.scenery = self._make_scenery()
-        self.door_open = False
-        self.door_changed_at = pg.time.get_ticks() - DOOR_ANIMATION_MS
+        self.door_animation.reset()
 
         player.set_world_bounds(self.world_width)
         spawn_x, spawn_bottom = self.spawn_position
@@ -202,17 +199,6 @@ class StageManager:
             near = player_rect is not None and self._near_door_rect(
                 player_rect, world_rect
             )
-            glow = pg.Surface((rect.width + 44, rect.height + 38), pg.SRCALPHA)
-            glow_alpha = 68 if near else 38
-            pg.draw.ellipse(
-                glow,
-                (142, 230, 255, glow_alpha),
-                glow.get_rect(),
-            )
-            surface.blit(glow, glow.get_rect(center=rect.center))
-
-            if door.draw_sprite:
-                draw_cave_door(surface, world_rect, camera_x, 1.0 if near else 0.0)
 
             if near:
                 self._draw_enter_label(surface, font, "↑ 이동", rect)
@@ -231,24 +217,7 @@ class StageManager:
             self.transitioning
             or (player_rect is not None and self.near_goal(player_rect))
         )
-        if open_requested != self.door_open:
-            # 문 열림 상태가 바뀌는 순간을 기록해서 애니메이션 진행률을 계산한다.
-            self.door_open = open_requested
-            self.door_changed_at = pg.time.get_ticks()
-
-        open_progress = self._door_open_progress()
-        glow = pg.Surface((rect.width + 90, rect.height + 70), pg.SRCALPHA)
-        glow_color = (255, 255, 170, 70) if unlocked else (80, 85, 100, 65)
-        pg.draw.rect(
-            glow,
-            glow_color,
-            glow.get_rect().inflate(-8, -8),
-            border_radius=18,
-        )
-        surface.blit(glow, glow.get_rect(center=rect.center))
-
-        if self.is_boss_stage:
-            draw_stage_door(surface, self.goal_rect, camera_x, "boss", open_progress)
+        self.door_animation.set_open(open_requested)
 
         if unlocked:
             label_text = "↑ 입장"
@@ -265,14 +234,6 @@ class StageManager:
         label_rect = label.get_rect(midbottom=(rect.centerx, rect.top - 12))
         surface.blit(shadow, label_rect.move(2, 2))
         surface.blit(label, label_rect)
-
-    def _door_open_progress(self):
-        """문 애니메이션이 0.0에서 1.0 사이로 얼마나 진행됐는지 계산한다."""
-        elapsed = pg.time.get_ticks() - self.door_changed_at
-        progress = min(1.0, elapsed / DOOR_ANIMATION_MS)
-        if self.door_open:
-            return progress
-        return 1.0 - progress
 
     def _advance(self):
         """다음 substage 또는 다음 world로 이동하고, 마지막이면 전체 클리어 처리한다."""

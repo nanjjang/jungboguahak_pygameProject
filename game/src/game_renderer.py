@@ -45,7 +45,7 @@ def render_game(surface, state, font, large_font):
         draw_end_overlay(
             surface,
             "GAME OVER",
-            "R: restart",
+            "R: restart    Q: exit",
             large_font,
             font,
         )

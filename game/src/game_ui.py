@@ -62,6 +62,39 @@ def draw_end_overlay(surface, title, subtitle, large_font, font):
     )
 
 
+def draw_quit_confirm_popup(surface, font, selected_yes):
+    """게임오버 화면에서 종료 여부를 묻는 확인 팝업을 그린다."""
+    shade = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pg.SRCALPHA)
+    shade.fill((0, 0, 0, 95))
+    surface.blit(shade, (0, 0))
+
+    popup_rect = pg.Rect(0, 0, 430, 190)
+    popup_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+    pg.draw.rect(surface, (255, 248, 238), popup_rect, border_radius=18)
+    pg.draw.rect(surface, (210, 70, 95), popup_rect, 4, border_radius=18)
+
+    title = font.render("진짜 게임을 종료할까요?", True, (45, 35, 45))
+    surface.blit(title, title.get_rect(center=(popup_rect.centerx, popup_rect.y + 58)))
+
+    guide = font.render("← → 선택    ENTER 결정", True, (95, 80, 90))
+    surface.blit(guide, guide.get_rect(center=(popup_rect.centerx, popup_rect.y + 92)))
+
+    yes_rect = pg.Rect(popup_rect.x + 82, popup_rect.y + 120, 112, 42)
+    no_rect = pg.Rect(popup_rect.right - 194, popup_rect.y + 120, 112, 42)
+    _draw_confirm_button(surface, font, yes_rect, "네", selected_yes)
+    _draw_confirm_button(surface, font, no_rect, "아니요", not selected_yes)
+
+
+def _draw_confirm_button(surface, font, rect, text, selected):
+    fill = (255, 220, 95) if selected else (245, 232, 222)
+    border = (175, 55, 80) if selected else (165, 145, 145)
+    text_color = (45, 35, 45)
+    pg.draw.rect(surface, fill, rect, border_radius=10)
+    pg.draw.rect(surface, border, rect, 3, border_radius=10)
+    label = font.render(text, True, text_color)
+    surface.blit(label, label.get_rect(center=rect.center))
+
+
 def _draw_boss_hud(surface, state, font):
     """보스가 있는 스테이지에서만 보스 체력바를 그린다."""
     boss = None

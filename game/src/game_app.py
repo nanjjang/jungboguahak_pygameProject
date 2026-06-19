@@ -1,4 +1,4 @@
-"""게임 실행 흐름을 관리하는 파일."""
+# r게임 흐름 관리
 
 import pygame as pg
 
@@ -12,6 +12,7 @@ from src.constants import (
 from src.game_input import clear_input_state, read_frame_input
 from src.game_renderer import render_game
 from src.game_state import GameState
+from src.game_ui import draw_quit_confirm_popup
 from src.gameplay import update_gameplay
 from src.balanceSetting import select_difficulty
 from src import sfx
@@ -42,6 +43,8 @@ def run_game(difficulty=None):
     state = GameState(difficulty, SCREEN_HEIGHT - 50)
     sfx.sync_bgm(state)
     running = True
+    quit_confirm_open = False
+    quit_confirm_yes = False
     while running:
         
         clock.tick(FPS)
@@ -49,6 +52,31 @@ def run_game(difficulty=None):
         if actions.quit_requested:
             sfx.stop_all()
             running = False
+            continue
+        if quit_confirm_open:
+            if actions.left_pressed or actions.up_pressed:
+                quit_confirm_yes = True
+                sfx.play_sfx("menu_move", cooldown_ms=80)
+            elif actions.right_pressed or actions.down_pressed:
+                quit_confirm_yes = False
+                sfx.play_sfx("menu_move", cooldown_ms=80)
+
+            if actions.settings_pressed:
+                quit_confirm_open = False
+                quit_confirm_yes = False
+                sfx.play_sfx("menu_confirm")
+            elif actions.confirm_pressed:
+                sfx.play_sfx("menu_confirm")
+                if quit_confirm_yes:
+                    sfx.stop_all()
+                    running = False
+                    continue
+                quit_confirm_open = False
+                quit_confirm_yes = False
+
+            render_game(screen, state, font, large_font)
+            draw_quit_confirm_popup(screen, font, quit_confirm_yes)
+            pg.display.flip()
             continue
         if actions.settings_pressed:
             sfx.stop_all()
@@ -69,12 +97,22 @@ def run_game(difficulty=None):
             clear_input_state()
             sfx.sync_bgm(state)
             continue
+        if actions.title_quit_pressed and state.player.game_over:
+            quit_confirm_open = True
+            quit_confirm_yes = False
+            sfx.play_sfx("menu_confirm")
+            render_game(screen, state, font, large_font)
+            draw_quit_confirm_popup(screen, font, quit_confirm_yes)
+            pg.display.flip()
+            continue
         if actions.restart_requested and (
             state.player.game_over or state.stage.completed
         ):
             sfx.stop_all()
             sfx.play_sfx("menu_confirm")
             state.restart()
+            quit_confirm_open = False
+            quit_confirm_yes = False
             clear_input_state()
             sfx.sync_bgm(state)
             continue

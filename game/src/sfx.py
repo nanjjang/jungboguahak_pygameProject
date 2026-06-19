@@ -1,5 +1,3 @@
-"""게임 효과음과 배경음을 한곳에서 관리한다."""
-
 from functools import lru_cache
 from pathlib import Path
 
@@ -44,7 +42,6 @@ _loop_channels = {}
 
 
 def init():
-    """mixer를 준비한다. 실패해도 게임은 소리 없이 계속 실행된다."""
     global _enabled
     if pg.mixer.get_init():
         return True
@@ -58,7 +55,6 @@ def init():
 
 
 def play_sfx(name, cooldown_ms=0):
-    """짧은 효과음을 재생한다."""
     if not _enabled or not init() or name not in SFX:
         return
 

@@ -1,5 +1,3 @@
-"""플레이어 캐릭터 Kirby의 이동, 공격, 흡입, 능력, 애니메이션을 담당한다."""
-
 import pygame as pg
 import load
 
@@ -399,7 +397,7 @@ class Kirby(pg.sprite.Sprite):
         """현재 활성 빔 효과음 하나만 재생하고 나머지는 멈춘다."""
         for name in ("beam", "beam_fire", "beam_water", "beam_earth"):
             if name == active_name:
-                sfx.play_loop(name)
+                sfx.loop(name)
             else:
                 sfx.stop(name)
 
@@ -424,7 +422,7 @@ class Kirby(pg.sprite.Sprite):
             and not self._in_attack()
         )
         if self.inhaling:
-            sfx.play_loop("inhale")
+            sfx.loop("inhale")
         else:
             sfx.stop("inhale")
 
@@ -579,7 +577,7 @@ class Kirby(pg.sprite.Sprite):
 
     # ---------------------------------------------------------------- beam
     def _get_beam(self, element):
-        """속성에 맞는 빔 객체를 가져오고, 없으면 새로 만든다."""
+        """속성에 맞는 객체를 가져오고, 없으면 새로 만듦"""
         if element not in self._beams:
             self._beams[element] = (
                 FireBeam() if element == "fire" else BeamEffect(element)
@@ -587,7 +585,7 @@ class Kirby(pg.sprite.Sprite):
         return self._beams[element]
 
     def _get_fire_direction(self, controls):
-        """불 능력은 방향키 상태에 따라 수평/수직/대각선 빔을 선택한다."""
+        """수평/수직/대각선"""
         if controls.up_held:
             return "vertical"
         if controls.down_held and self.is_jumping:
@@ -595,7 +593,7 @@ class Kirby(pg.sprite.Sprite):
         return "horizontal"
 
     def _update_beams(self, attack_held, controls=None):
-        """능력 빔의 활성화, 비활성화, 위치, 에너지 상태를 갱신한다."""
+        """능력 활성화, 비활성화, 위치, 상태 갱신 등등..?"""
         active_sound = None
         if self.is_empty() or self.held_element is not None or self._in_attack():
             for beam in self._beams.values():
@@ -848,7 +846,7 @@ class Kirby(pg.sprite.Sprite):
             self.attack_buffer_count > 0
             and self.attack_stage < len(self.attack_combos[self.attack_kind]) - 1
         ):
-            # 공격 중 같은 키를 누르면 다음 콤보 단계가 예약된다.
+            # 공격 중 같은 키 입력하면 콤보 예약
             kind = self.attack_kind
             self._start_attack(
                 kind,
