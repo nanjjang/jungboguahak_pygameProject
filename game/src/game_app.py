@@ -38,7 +38,7 @@ def run_game(difficulty=None):
         return 0
 
     clear_input_state()
-    sfx.stop_all_loops(fade_ms=0)
+    sfx.stop_all(fade_ms=0)
     state = GameState(difficulty, SCREEN_HEIGHT - 50)
     sfx.sync_game_music(state)
     running = True
@@ -47,11 +47,11 @@ def run_game(difficulty=None):
         clock.tick(FPS)
         actions = read_frame_input()
         if actions.quit_requested:
-            sfx.stop_all_loops()
+            sfx.stop_all()
             running = False
             continue
         if actions.settings_pressed:
-            sfx.stop_all_loops()
+            sfx.stop_all()
             sfx.play_music("menu")
             settings_result = _show_settings_menu(state.difficulty)
             if settings_result.get("quit_requested"):
@@ -72,7 +72,7 @@ def run_game(difficulty=None):
         if actions.restart_requested and (
             state.player.game_over or state.stage.completed
         ):
-            sfx.stop_all_loops()
+            sfx.stop_all()
             sfx.play("menu_confirm")
             state.restart()
             clear_input_state()
@@ -123,7 +123,7 @@ def _show_settings_menu(current_difficulty=None):
 
 
 def _shutdown_with_quit_sound():
-    sfx.stop_all_loops(fade_ms=0)
+    sfx.stop_all(fade_ms=0)
     sfx.stop_music(fade_ms=120)
-    sfx.play_and_wait("quit")
+    sfx.until_end("quit")
     pg.quit()

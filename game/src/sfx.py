@@ -76,8 +76,7 @@ def play(name, cooldown_ms=0):
     sound.play()
 
 
-def play_and_wait(name):
-    """효과음을 재생하고 끝날 때까지 기다린다."""
+def until_end(name):
     if not _enabled or not init() or name not in SFX:
         return
 
@@ -124,7 +123,7 @@ def stop(name, fade_ms=70):
         channel.stop()
 
 
-def stop_all_loops(fade_ms=70):
+def stop_all(fade_ms=70):
     """누르고 있는 동안 재생되는 모든 효과음을 멈춘다."""
     for name in tuple(_loop_channels):
         stop(name, fade_ms=fade_ms)
