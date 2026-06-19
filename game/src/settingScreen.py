@@ -34,6 +34,7 @@ title_font = load.get_korean_font(36)
 # 실제 적용 데이터는 메뉴를 닫은 뒤에도 유지되는 설정값이다.
 volume = 50
 difficulties = ["Easy", "Normal", "Hard"]
+DIFFICULTY_VALUES = ["easy", "normal", "hard"]
 diff_index = 1
 temp_diff_index = 1  # 난이도 임시 조작용 인덱스
 
@@ -103,6 +104,19 @@ def apply_screen_mode():
     if is_fullscreen:
         flags = pg.FULLSCREEN
     screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), flags)
+
+
+def set_current_difficulty(difficulty):
+    """게임 쪽 난이도 문자열을 설정 메뉴 인덱스와 맞춘다."""
+    global diff_index, temp_diff_index
+    if difficulty in DIFFICULTY_VALUES:
+        diff_index = DIFFICULTY_VALUES.index(difficulty)
+        temp_diff_index = diff_index
+
+
+def current_difficulty():
+    """설정 메뉴에서 적용된 난이도 문자열을 반환한다."""
+    return DIFFICULTY_VALUES[diff_index]
 
 
 # ====================================================
@@ -215,12 +229,28 @@ def show_character_setting_menu():
 # ====================================================
 # 메인 설정 메뉴 화면 함수
 # ====================================================
-def show_settings_menu():
+def show_settings_menu(current_game_difficulty=None):
     """볼륨, 난이도, 캐릭터, 화면 크기 등 전체 설정 메뉴를 보여준다."""
     global volume, diff_index, temp_diff_index, nickname, size_index, is_fullscreen, screen, SCREEN_WIDTH, SCREEN_HEIGHT
     global current_color_idx, current_costume_idx
     global typing_mode, confirm_mode, volume_dragging, pending_direction
     global key_hold_time, last_tick_time, pressed_direction
+
+    if current_game_difficulty is not None:
+        set_current_difficulty(current_game_difficulty)
+
+    typing_mode = False
+    confirm_mode = False
+    pending_direction = None
+    volume_dragging = False
+    pressed_direction = None
+    key_hold_time = 0
+    last_tick_time = 0
+
+    result = {
+        "difficulty": None,
+        "restart_requested": False,
+    }
 
     menu_items = [
         "볼륨 바 (Volume)",
@@ -320,10 +350,10 @@ def show_settings_menu():
         # 난이도 이탈 시 발생하는 승낙/거절 팝업창
         if confirm_mode:
             popup_rect = pg.Rect(
-                SCREEN_WIDTH // 2 - 200,
+                SCREEN_WIDTH // 2 - 210,
                 SCREEN_HEIGHT // 2 - 80,
-                400,
-                160,
+                500,
+                150,
             )
             pg.draw.rect(screen, DARK_GRAY, popup_rect)
             pg.draw.rect(screen, PINK, popup_rect, 3)
@@ -394,11 +424,13 @@ def show_settings_menu():
                     if event.key == pg.K_RETURN:
                         # 승낙
                         diff_index = temp_diff_index
+                        result["difficulty"] = current_difficulty()
                         confirm_mode = False
                         if pending_direction == "UP":
                             selected_index = previous_menu_index(selected_index, menu_items)
                         elif pending_direction == "DOWN":
                             selected_index = next_menu_index(selected_index, menu_items)
+                        pending_direction = None
                     elif event.key == pg.K_ESCAPE:
                         # 거절
                         temp_diff_index = diff_index
@@ -407,6 +439,7 @@ def show_settings_menu():
                             selected_index = previous_menu_index(selected_index, menu_items)
                         elif pending_direction == "DOWN":
                             selected_index = next_menu_index(selected_index, menu_items)
+                        pending_direction = None
                     continue
 
                 if typing_mode:
@@ -475,9 +508,13 @@ def show_settings_menu():
                     # ENTER는 하위 메뉴 진입, 재시작, 종료처럼 명령형 항목을 실행한다.
                     if selected_index == 7:
                         typing_mode = True
+                    elif selected_index == 1:
+                        diff_index = temp_diff_index
+                        result["difficulty"] = current_difficulty()
                     elif selected_index == 2:
                         show_character_setting_menu()
                     elif selected_index == 5:
+                        result["restart_requested"] = True
                         menu_running = False
                     elif selected_index == 6:
                         pg.quit()
@@ -488,6 +525,8 @@ def show_settings_menu():
             relative_x = mouse_pos[0] - VOLUME_BAR_RECT.x
             relative_x = max(0, min(relative_x, VOLUME_BAR_RECT.width))
             volume = int((relative_x / VOLUME_BAR_RECT.width) * 100)
+
+    return result
 
 
 # --- 메인 게임 인게임 루프 ---

@@ -16,25 +16,17 @@ _DOOR_ROWS = {
     "normal": "row3",
     "boss": "row2",
 }
-_DOOR_SIGNS = {
-    "normal": "top_04.png",
-    "boss": "top_03.png",
-}
 
 
 def draw_stage_door(surface, goal_rect, camera_x, kind, open_progress):
     """문 열림 진행률에 맞는 프레임과 표지판을 화면에 그린다."""
     frames = _load_door_frames(kind)
-    sign = _load_door_sign(kind)
     frame = frames[_frame_index(open_progress)]
     # goal_rect는 월드 좌표이므로 카메라 위치를 빼 화면 좌표로 바꾼다.
     screen_rect = goal_rect.move(-round(camera_x), 0)
 
     door_rect = frame.get_rect(midbottom=screen_rect.midbottom)
     surface.blit(frame, door_rect)
-
-    sign_rect = sign.get_rect(midbottom=(screen_rect.centerx, door_rect.top + 8))
-    surface.blit(sign, sign_rect)
 
 
 def _frame_index(open_progress):
@@ -57,9 +49,6 @@ def _load_door_frames(kind):
 
 
 @lru_cache(maxsize=None)
-def _load_door_sign(kind):
-    """문 종류에 맞는 표지판 이미지를 불러온다."""
-    return _load_scaled(_DOOR_SIGNS[kind], SIGN_SCALE)
 
 
 def _load_scaled(filename, scale):

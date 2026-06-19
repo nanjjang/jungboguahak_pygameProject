@@ -9,7 +9,7 @@ from src.constants import (
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
 )
-from src.game_input import read_frame_input, _normalized_key
+from src.game_input import read_frame_input
 from src.game_renderer import render_game
 from src.game_state import GameState
 from src.gameplay import update_gameplay
@@ -44,7 +44,16 @@ def run_game(difficulty=None):
             running = False
             continue
         if actions.settings_pressed:
-            _show_settings_menu()
+            settings_result = _show_settings_menu(state.difficulty)
+            new_difficulty = settings_result.get("difficulty")
+            difficulty_changed = (
+                new_difficulty is not None
+                and new_difficulty != state.difficulty
+            )
+            if new_difficulty is not None:
+                state.set_difficulty(new_difficulty)
+            if difficulty_changed or settings_result.get("restart_requested"):
+                state.reload_current_stage()
             continue
         if actions.restart_requested and (
             state.player.game_over or state.stage.completed
@@ -61,15 +70,19 @@ def run_game(difficulty=None):
 
 
 def _choose_difficulty(screen, clock):
+    initial_difficulty = "normal"
     while True:
         title_action = show_title_screen(screen, clock)
         if title_action == TitleAction.QUIT:
             return None
         if title_action == TitleAction.SETTINGS:
-            _show_settings_menu()
+            settings_result = _show_settings_menu(initial_difficulty)
+            new_difficulty = settings_result.get("difficulty")
+            if new_difficulty is not None:
+                initial_difficulty = _resolve_difficulty(new_difficulty)
             continue
 
-        difficulty = select_difficulty(screen, clock)
+        difficulty = select_difficulty(screen, clock, initial=initial_difficulty)
         if difficulty == "quit":
             return None
         if difficulty is not None:
@@ -82,7 +95,7 @@ def _resolve_difficulty(difficulty):
     return difficulty
 
 
-def _show_settings_menu():
+def _show_settings_menu(current_difficulty=None):
     from src.settingScreen import show_settings_menu
 
-    show_settings_menu()
+    return show_settings_menu(current_difficulty)

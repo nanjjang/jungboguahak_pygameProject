@@ -2,19 +2,23 @@
 
 import pygame as pg
 
-from src.constants import SCREEN_WIDTH
+from src.constants import DIFFICULTY_SETTINGS, SCREEN_WIDTH
 from src.kirby import Kirby
 from src.stage import StageManager
 
 
-def _create_run(difficulty, ground_y):
+def _create_run(difficulty, ground_y, world=1, substage=1):
     """새 게임 또는 재시작 때 필요한 플레이어, 스테이지, 적 목록을 만든다."""
     stage = StageManager(difficulty, ground_y)
+    stage.world = world
+    stage.substage = substage
+    stage.completed = False
+    enemies = stage.spawn_current()
     player = Kirby(x=70, y=ground_y - 26)
     player.set_world_bounds(stage.world_width)
     player.set_spawn_point(70, ground_y - player.rect.height)
     player.reset_position()
-    return player, stage, stage.spawn_current()
+    return player, stage, enemies
 
 
 class GameState:
@@ -39,6 +43,34 @@ class GameState:
             self.difficulty,
             self.ground_y,
         )
+        self._clear_runtime_state()
+
+    def reload_current_stage(self):
+        """현재 world/substage는 유지하고 스테이지를 새로 불러온다."""
+        world = 1
+        substage = 1
+        if self.stage is not None:
+            world = self.stage.world
+            substage = self.stage.substage
+
+        self.player, self.stage, self.enemies = _create_run(
+            self.difficulty,
+            self.ground_y,
+            world,
+            substage,
+        )
+        self._clear_runtime_state()
+
+    def set_difficulty(self, difficulty):
+        """앞으로 생성되는 적과 HUD가 사용할 난이도를 변경한다."""
+        if difficulty not in DIFFICULTY_SETTINGS:
+            return
+        self.difficulty = difficulty
+        if self.stage is not None:
+            self.stage.difficulty = difficulty
+
+    def _clear_runtime_state(self):
+        """발사체, 데미지 숫자, 카메라처럼 스테이지 재로딩 때 비울 값을 정리한다."""
         self.projectiles.empty()
         self.enemy_projectiles.empty()
         self.damage_numbers.clear()
