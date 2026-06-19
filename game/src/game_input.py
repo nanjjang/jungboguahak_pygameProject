@@ -223,6 +223,12 @@ def _clear_held_keys():
     _HELD_SCANCODES.clear()
 
 
+def clear_input_state():
+    """화면 전환 직후 이전 화면에서 누르고 있던 키 상태를 버린다."""
+    _clear_held_keys()
+    pg.event.clear((pg.KEYDOWN, pg.KEYUP))
+
+
 def _held_action(held, action):
     return _held_any(held, (KEY_BINDINGS[action],), (KEY_SCANCODES[action],))
 

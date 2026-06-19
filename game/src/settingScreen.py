@@ -1,7 +1,7 @@
 """게임 중 ESC로 들어가는 설정 메뉴와 캐릭터 설정 메뉴."""
 
 import pygame as pg
-import  sys, load
+import load
 from src.constants import (
     FPS,
     SCREEN_HEIGHT,
@@ -124,8 +124,9 @@ def current_difficulty():
 # ====================================================
 def show_character_setting_menu():
 
-    show_popup(screen, "현재 개발 중에 있는 기능입니다! \n v2.0 업데이트를 기달려주세요!")
-    return
+    if not show_popup(screen, "현재 개발 중에 있는 기능입니다! \n v2.0 업데이트를 기달려주세요!"):
+        return "quit"
+    return None
     # global current_color_idx, current_costume_idx, temp_color_idx, temp_costume_idx
 
     # # 하위 메뉴에 들어올 때 현재 적용값을 임시값으로 복사한다.
@@ -250,6 +251,7 @@ def show_settings_menu(current_game_difficulty=None):
     result = {
         "difficulty": None,
         "restart_requested": False,
+        "quit_requested": False,
     }
 
     menu_items = [
@@ -394,8 +396,8 @@ def show_settings_menu(current_game_difficulty=None):
         mouse_pos = pg.mouse.get_pos()
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                pg.quit()
-                sys.exit()
+                result["quit_requested"] = True
+                return result
 
             if event.type == pg.MOUSEBUTTONDOWN and event.button == 1:
                 # 볼륨 바 근처를 클릭하면 드래그로 볼륨을 조절할 수 있다.
@@ -512,13 +514,15 @@ def show_settings_menu(current_game_difficulty=None):
                         diff_index = temp_diff_index
                         result["difficulty"] = current_difficulty()
                     elif selected_index == 2:
-                        show_character_setting_menu()
+                        if show_character_setting_menu() == "quit":
+                            result["quit_requested"] = True
+                            menu_running = False
                     elif selected_index == 5:
                         result["restart_requested"] = True
                         menu_running = False
                     elif selected_index == 6:
-                        pg.quit()
-                        sys.exit()
+                        result["quit_requested"] = True
+                        menu_running = False
 
         if volume_dragging:
             # 마우스 x좌표를 볼륨 바 길이에 맞춰 0~100 사이 볼륨으로 변환한다.

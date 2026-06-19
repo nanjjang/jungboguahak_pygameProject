@@ -1,6 +1,7 @@
 """플레이어, 적, 발사체 사이의 충돌과 데미지를 처리하는 파일."""
 
 from src.combat import DamageNumber
+from src import sfx
 
 
 def spawn_damage_number(numbers, amount, rect):
@@ -13,6 +14,8 @@ def damage_enemy(enemy, amount, source_x, state):
     """적에게 피해를 주고, 쓰러졌으면 현재 스테이지 적 목록에서 제거한다."""
     dealt = enemy.take_damage(amount, source_x=source_x)
     spawn_damage_number(state.damage_numbers, dealt, enemy.rect)
+    if dealt > 0:
+        sfx.play("enemy_hit", cooldown_ms=70)
     if enemy.defeated and enemy in state.enemies:
         state.enemies.remove(enemy)
     return dealt

@@ -268,3 +268,10 @@ KEY_BINDINGS = {
 
 # 게임 맵 구성 그리고 몬스터 ai
 > 완전한 인공지능을 통해 생성한 코드입니다. ("enemy.py", "stage.py", "object.py")
+
+
+
+
+
+# 효과음 출처
+https://sounds.spriters-resource.com/wii/kirbysreturntodreamland/asset/394725/

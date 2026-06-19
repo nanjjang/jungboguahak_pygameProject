@@ -5,21 +5,30 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="b998e4be-2d36-4a18-871b-21d3a29b6124" name="변경" comment="">
-      <change afterPath="$PROJECT_DIR$/Docs/img_2.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Docs/report.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/errorFix_withClaude.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/설계.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Docs/주제.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/game/src/enemy_system.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/enemy_system.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Docs/report.md" beforeDir="false" afterPath="$PROJECT_DIR$/Docs/report.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0045.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0071.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0076.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0080.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0141.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0201.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0202.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0212.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0265.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0308.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0403.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/0463.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/37_-_Grill's_Intro.mp3" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/assets/sounds/tmp_69k5pe4.mp3" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/balanceSetting.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/balanceSetting.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/combat_system.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/combat_system.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/game_app.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/game_app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/game/src/game_input.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/game_input.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game/src/game_renderer.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/game_renderer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game/src/game_state.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/game_state.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game/src/gameplay.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/gameplay.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/game/src/kirby.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/kirby.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game/src/object.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/object.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/sfx.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/sfx.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/game/src/stage.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/stage.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game/src/stage_door.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/stage_door.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/game/src/title_screen.py" beforeDir="false" afterPath="$PROJECT_DIR$/game/src/title_screen.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,61 +59,61 @@
 }</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.1017866850411753" />
-      <entry key="MS500" value="1.8878329664504356" />
-      <entry key="S2" value="3.0712381942303826" />
-      <entry key="S5" value="4.404026236878025" />
-      <entry key="S10" value="6.844113380507731" />
-      <entry key="S30" value="12.994021575571734" />
-      <entry key="S60" value="17.02514485364351" />
-      <entry key="M2" value="21.373324037069622" />
-      <entry key="M5" value="28.749088245521662" />
-      <entry key="M10" value="39.810148634065335" />
-      <entry key="M15" value="52.315783046798416" />
-      <entry key="M30" value="92.24522080040282" />
-      <entry key="H1" value="185.31813250378738" />
-      <entry key="H2" value="384.1748932967572" />
-      <entry key="H4" value="726.1024656782605" />
-      <entry key="D1" value="1842.6357054740147" />
-      <entry key="W1" value="2286.254794208054" />
+      <entry key="MS100" value="1.7343400823805801" />
+      <entry key="MS500" value="3.162932498841445" />
+      <entry key="S2" value="3.758621779277663" />
+      <entry key="S5" value="3.9005360247361494" />
+      <entry key="S10" value="3.9497684479960964" />
+      <entry key="S30" value="3.983143793840624" />
+      <entry key="S60" value="3.9916676744084683" />
+      <entry key="M2" value="4.0746632713574655" />
+      <entry key="M5" value="8.13646018202774" />
+      <entry key="M10" value="20.185617580392897" />
+      <entry key="M15" value="31.6247394981543" />
+      <entry key="M30" value="65.51301937973088" />
+      <entry key="H1" value="145.41486227649716" />
+      <entry key="H2" value="330.844076552967" />
+      <entry key="H4" value="673.1005518078146" />
+      <entry key="D1" value="1853.4197917178858" />
+      <entry key="W1" value="2339.0869342719957" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
       <entry key="MS500" value="0.0" />
-      <entry key="S2" value="1.4494345043784888E-99" />
-      <entry key="S5" value="6.7857461513749115E-40" />
-      <entry key="S10" value="6.020904048898894E-20" />
-      <entry key="S30" value="1.2745182427288957E-6" />
-      <entry key="S60" value="0.002759647956925339" />
-      <entry key="M2" value="0.1286098166223711" />
-      <entry key="M5" value="1.290557524996071" />
-      <entry key="M10" value="2.831775880877137" />
-      <entry key="M15" value="3.8062467963586712" />
-      <entry key="M30" value="5.581435200741036" />
-      <entry key="H1" value="7.558156866140748" />
-      <entry key="H2" value="10.040770900682478" />
-      <entry key="H4" value="13.178981473937906" />
-      <entry key="D1" value="20.815291881516245" />
-      <entry key="W1" value="23.484219628951738" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="3.2200415237485155E-249" />
+      <entry key="S10" value="1.3115765335040439E-124" />
+      <entry key="S30" value="1.6521774865607966E-41" />
+      <entry key="S60" value="9.935941032337984E-21" />
+      <entry key="M2" value="2.440348099309758E-10" />
+      <entry key="M5" value="4.188402709168102E-4" />
+      <entry key="M10" value="0.05101459117375965" />
+      <entry key="M15" value="0.26156961866330247" />
+      <entry key="M30" value="1.4631574549869377" />
+      <entry key="H1" value="3.8697997298315814" />
+      <entry key="H2" value="7.184612545152772" />
+      <entry key="H4" value="11.148077896569497" />
+      <entry key="D1" value="20.242719770278946" />
+      <entry key="W1" value="23.390828946563463" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9809979723535646" />
-      <entry key="MS500" value="1.498805405020744" />
-      <entry key="S2" value="2.568630444883209" />
-      <entry key="S5" value="4.073528436549005" />
-      <entry key="S10" value="6.642015121897962" />
-      <entry key="S30" value="12.904306322760549" />
-      <entry key="S60" value="16.966135367962224" />
-      <entry key="M2" value="21.453511921140834" />
-      <entry key="M5" value="30.00677693132834" />
-      <entry key="M10" value="42.620217788815765" />
-      <entry key="M15" value="56.105669380768596" />
-      <entry key="M30" value="97.81693731949757" />
-      <entry key="H1" value="192.8705162640698" />
-      <entry key="H2" value="394.21194555633053" />
-      <entry key="H4" value="739.2786457100989" />
-      <entry key="D1" value="1863.449840917572" />
-      <entry key="W1" value="2309.7388058997058" />
+      <entry key="MS100" value="1.686793350121972" />
+      <entry key="MS500" value="3.141561515487785" />
+      <entry key="S2" value="3.7519107140511063" />
+      <entry key="S5" value="3.8977185673442696" />
+      <entry key="S10" value="3.9483365406766273" />
+      <entry key="S30" value="3.9826612439691287" />
+      <entry key="S60" value="3.9914256912160986" />
+      <entry key="M2" value="4.0745244622643435" />
+      <entry key="M5" value="8.136438096989984" />
+      <entry key="M10" value="20.235494838710792" />
+      <entry key="M15" value="31.884418574577897" />
+      <entry key="M30" value="66.97303661465749" />
+      <entry key="H1" value="149.28133734566006" />
+      <entry key="H2" value="338.02582244819683" />
+      <entry key="H4" value="684.2461512599402" />
+      <entry key="D1" value="1873.6613678934564" />
+      <entry key="W1" value="2362.4775533772136" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -161,7 +170,7 @@
       <workItem from="1781417694484" duration="10290000" />
       <workItem from="1781479780690" duration="6634000" />
       <workItem from="1781652467773" duration="7675000" />
-      <workItem from="1781837063017" duration="12534000" />
+      <workItem from="1781837063017" duration="14296000" />
     </task>
     <servers />
   </component>

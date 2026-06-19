@@ -8,6 +8,7 @@ from src.object import StageScenery
 from src.delay_goingNext import animation_duration_ms
 from src.stage_door import DOOR_ANIMATION_MS, draw_cave_door, draw_stage_door
 from src.stage_map import build_stage_layout, local_door_rect
+from src import sfx
 
 BOSS_ELEMENTS = ("earth", "fire", "electric", "water", "earth")
 FLOOR_STEP_UP = 36
@@ -138,6 +139,7 @@ class StageManager:
         if source is None:
             return None
 
+        sfx.stop_all_loops()
         self.room_id = source.target_room
         self.layout = self._make_layout()
         self.world_width = self.layout.world_width
@@ -179,6 +181,7 @@ class StageManager:
             and self.goal_unlocked(enemies)
         ):
             # 조건이 모두 맞으면 지금 시간을 기록해서 클리어 연출 상태로 들어간다.
+            sfx.stop_all_loops()
             self.clear_started_at = now
         return None
 

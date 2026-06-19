@@ -5,6 +5,7 @@ import pygame as pg
 
 import load
 from src.constants import SCREEN_HEIGHT, SCREEN_WIDTH
+from src import sfx
 
 
 SCENERY_ROOT = Path(__file__).resolve().parent / "assets" / "scenery"
@@ -48,13 +49,17 @@ def select_difficulty(screen, clock, initial="normal"):
                 selected_index += 1
                 if selected_index >= len(DIFFICULTIES):
                     selected_index = len(DIFFICULTIES) - 1
+                sfx.play("menu_move", cooldown_ms=80)
             elif event.key in (pg.K_DOWN, pg.K_LEFT):
                 selected_index -= 1
                 if selected_index < 0:
                     selected_index = 0
+                sfx.play("menu_move", cooldown_ms=80)
             elif event.key in (pg.K_RETURN, pg.K_KP_ENTER, pg.K_SPACE):
+                sfx.play("menu_confirm")
                 return DIFFICULTIES[selected_index]
             elif event.key == pg.K_ESCAPE:
+                sfx.play("menu_confirm")
                 return None
 
         screen.fill(BACKGROUND_COLORS[selected_index])

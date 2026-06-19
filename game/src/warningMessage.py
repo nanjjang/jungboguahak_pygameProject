@@ -15,8 +15,7 @@ def show_popup(screen, message):
         while waiting:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
-                    pg.quit()
-                    exit()
+                    return False
                 if event.type == pg.KEYDOWN: # 아무 키나 누르면 팝업 닫기
                     waiting = False
 
@@ -32,3 +31,4 @@ def show_popup(screen, message):
             screen.blit(text_surface, text_rect)
 
             pg.display.flip()
+        return True

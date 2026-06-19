@@ -5,6 +5,7 @@ import load
 
 from src.constants import ELEMENTS, SCREEN_WIDTH, SCREEN_HEIGHT
 from src.beam_effect import BEAM_ELEMENTS, BeamEffect, FireBeam
+from src import sfx
 
 _BODY_SIZE = (26, 26)
 _SPRITE_SIZE = (42, 36)
@@ -380,6 +381,28 @@ class Kirby(pg.sprite.Sprite):
         self.beam_hit_cooldown_frames = 0
         self.font = load.get_korean_font(18)
 
+    def _beam_sound_name(self, element):
+        """능력 종류에 맞는 지속 빔 효과음 이름을 고른다."""
+        return {
+            "fire": "beam_fire",
+            "water": "beam_water",
+            "earth": "beam_earth",
+        }.get(element, "beam")
+
+    def _stop_held_sounds(self):
+        """키를 누르는 동안만 나야 하는 Kirby 효과음을 모두 끈다."""
+        sfx.stop("inhale")
+        for name in ("beam", "beam_fire", "beam_water", "beam_earth"):
+            sfx.stop(name)
+
+    def _sync_beam_sound(self, active_name):
+        """현재 활성 빔 효과음 하나만 재생하고 나머지는 멈춘다."""
+        for name in ("beam", "beam_fire", "beam_water", "beam_earth"):
+            if name == active_name:
+                sfx.play_loop(name)
+            else:
+                sfx.stop(name)
+
     # ---------------------------------------------------------------- update
     def update(
         self,
@@ -400,6 +423,10 @@ class Kirby(pg.sprite.Sprite):
             and self.held_element is None
             and not self._in_attack()
         )
+        if self.inhaling:
+            sfx.play_loop("inhale")
+        else:
+            sfx.stop("inhale")
 
         self.jump_held = controls.jump_held
         self.hover_held = self.jump_held and controls.hover_modifier_held
@@ -484,6 +511,7 @@ class Kirby(pg.sprite.Sprite):
             self.held_element = None
         elif not self.is_empty():
             self.pop()
+        sfx.play("spit", cooldown_ms=220)
         self.spit_animation.start()
         self._shoot("star")
 
@@ -527,6 +555,7 @@ class Kirby(pg.sprite.Sprite):
         self.attack_chain_kind = None
         self.attack_chain_stage = 0
         self.attack_chain_expires_at = 0
+        sfx.play("melee", cooldown_ms=90)
         self._apply_attack_motion()
 
     def _finish_attack(self):
@@ -567,6 +596,7 @@ class Kirby(pg.sprite.Sprite):
 
     def _update_beams(self, attack_held, controls=None):
         """능력 빔의 활성화, 비활성화, 위치, 에너지 상태를 갱신한다."""
+        active_sound = None
         if self.is_empty() or self.held_element is not None or self._in_attack():
             for beam in self._beams.values():
                 beam.deactivate()
@@ -579,6 +609,8 @@ class Kirby(pg.sprite.Sprite):
                         beam.try_activate(self._get_fire_direction(controls))
                     else:
                         beam.try_activate()
+                    if beam.active:
+                        active_sound = self._beam_sound_name(current)
                 else:
                     beam.deactivate()
 
@@ -593,6 +625,7 @@ class Kirby(pg.sprite.Sprite):
 
         if self.beam_hit_cooldown_frames > 0:
             self.beam_hit_cooldown_frames -= 1
+        self._sync_beam_sound(active_sound)
 
     def _active_beam_state(self):
         """현재 켜져 있는 빔이 있으면 애니메이션에 필요한 상태를 반환한다."""
@@ -688,6 +721,7 @@ class Kirby(pg.sprite.Sprite):
         if element in self.ability_stack:
             self.pop_same_ability(element)
         self.push(element)
+        sfx.play("copy", cooldown_ms=250)
 
     def _shoot(self, element):
         """Projectile 생성을 위한 정보를 pending_projectiles에 임시 저장한다."""
@@ -730,6 +764,7 @@ class Kirby(pg.sprite.Sprite):
         self.attack_chain_expires_at = 0
         for beam in self._beams.values():
             beam.deactivate()
+        self._stop_held_sounds()
 
     def take_damage(self, amount, source_x=None):
         """플레이어가 피해를 입었을 때 체력, 목숨, 무적 시간을 처리한다."""
@@ -750,8 +785,10 @@ class Kirby(pg.sprite.Sprite):
             )
         self.velocity_y = -4.2
         self.is_jumping = True
+        self._stop_held_sounds()
 
         if self.hp <= 0:
+            sfx.play("player_down", cooldown_ms=600)
             # 체력이 0이 되면 목숨을 줄이고, 남은 목숨이 있으면 재배치한다.
             self.lives -= 1
             if self.lives > 0:
@@ -765,6 +802,8 @@ class Kirby(pg.sprite.Sprite):
                 self._finish_attack()
                 for beam in self._beams.values():
                     beam.deactivate()
+        else:
+            sfx.play("player_hit", cooldown_ms=420)
         return dealt
 
     # ---------------------------------------------------------------- animation frames
@@ -950,6 +989,7 @@ class Kirby(pg.sprite.Sprite):
                 self.velocity_y = -10.0
                 self.is_jumping = True
                 self.hovering = False
+                sfx.play("jump", cooldown_ms=120)
             else:
                 # 공중에서 다시 점프를 누르면 호버 상태로 들어간다.
                 self.velocity_y = -6.0
