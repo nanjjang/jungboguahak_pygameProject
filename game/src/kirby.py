@@ -246,7 +246,7 @@ class Kirby(pg.sprite.Sprite):
                 "horizontal": water_shot_frames,
             },
             "electric": {
-                "horizontal": electric_frames,
+                "horizontal": breath_horizontal,
             },
             "earth": {"horizontal": breath_horizontal},
         }
@@ -1103,24 +1103,6 @@ class Kirby(pg.sprite.Sprite):
             image = image.copy()
             image.fill((255, 70, 70, 120), special_flags=pg.BLEND_RGBA_ADD)
         surface.blit(image, image_rect)
-        # 입에 문 속성
-        if (
-            self.held_element is not None
-            and not self.spit_animation.active
-            and not self._in_attack()
-        ):
-            color = ELEMENTS[self.held_element]["color"]
-            bx = self.rect.right + 4 if self.facing_right else self.rect.left - 4
-            bx -= round(camera_x)
-            radius = 13 if (pg.time.get_ticks() // 150) % 2 == 0 else 10
-            pg.draw.circle(surface, color, (bx, self.rect.centery), radius)
-            pg.draw.circle(
-                surface,
-                (255, 255, 255),
-                (bx, self.rect.centery),
-                radius,
-                2,
-            )
 
     def draw_inhale_effect(self, surface, camera_x=0):
         # 흡입 효과

@@ -46,7 +46,7 @@ def render_game(surface, state, font, large_font):
         draw_end_overlay(
             surface,
             "ALL STAGES CLEAR!",
-            "R: play again",
+            "R: play again    Q: exit",
             large_font,
             font,
         )

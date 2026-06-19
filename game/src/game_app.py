@@ -97,7 +97,9 @@ def run_game(difficulty=None):
             clear_input_state()
             sfx.sync_bgm(state)
             continue
-        if actions.title_quit_pressed and state.player.game_over:
+        if actions.title_quit_pressed and (
+            state.player.game_over or state.stage.completed
+        ):
             quit_confirm_open = True
             quit_confirm_yes = False
             sfx.play_sfx("menu_confirm")

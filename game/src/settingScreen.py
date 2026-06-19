@@ -8,6 +8,7 @@ from src.constants import (
     SCREEN_WIDTH,
 )
 from src.warningMessage import show_popup
+from src import sfx
 
 screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pg.time.Clock()
@@ -27,7 +28,7 @@ GREEN = (60, 179, 113)
 font = load.get_korean_font(22)
 title_font = load.get_korean_font(36)
 
-volume = 50
+volume = 100
 difficulties = ["Easy", "Normal", "Hard"]
 DIFFICULTY_VALUES = ["easy", "normal", "hard"]
 diff_index = 1
@@ -184,6 +185,7 @@ def show_settings_menu(current_game_difficulty=None):
     menu_running = True
     while menu_running:
         dt = clock.tick(30)
+        sfx.set_user_volume(volume)
         screen.fill(BLACK)
 
         # 타이틀

@@ -6,8 +6,28 @@ import pygame as pg
 
 SOUNDS_ROOT = Path(__file__).resolve().parent / "assets" / "sounds"
 
-MASTER_VOLUME = 0.78
-MUSIC_VOLUME = 0.44
+# 개발자가 맞춘 기준 볼륨
+BASE_MASTER_VOLUME = 0.78
+BASE_MUSIC_VOLUME = 0.44
+
+# 설정 메뉴에서 조절하는 사용자 볼륨 배율 (0.0 ~ 1.0)
+_user_volume = 1.0
+
+
+def set_user_volume(percent):
+    # 설정 메뉴의 0~100 볼륨을 반영
+    global _user_volume
+    _user_volume = max(0, min(100, percent)) / 100
+    if pg.mixer.get_init():
+        pg.mixer.music.set_volume(BASE_MUSIC_VOLUME * _user_volume)
+
+
+def master_volume():
+    return BASE_MASTER_VOLUME * _user_volume
+
+
+def music_volume():
+    return BASE_MUSIC_VOLUME * _user_volume
 
 MUSIC = {
     "menu": "05_-_Menu.mp3",
@@ -68,7 +88,7 @@ def play_sfx(name, cooldown_ms=0):
     if sound is None:
         return
     _, volume = SFX[name]
-    sound.set_volume(volume * MASTER_VOLUME)
+    sound.set_volume(volume * master_volume())
     sound.play()
 
 
@@ -81,7 +101,7 @@ def wait_to_quit(name):
     if sound is None:
         return
     _, volume = SFX[name]
-    sound.set_volume(volume * MASTER_VOLUME)
+    sound.set_volume(volume * master_volume())
     channel = sound.play()
     if channel is None:
         return
@@ -104,7 +124,7 @@ def loop(name):
     if sound is None:
         return
     _, volume = SFX[name]
-    sound.set_volume(volume * MASTER_VOLUME)
+    sound.set_volume(volume * master_volume())
     channel = sound.play(loops=-1)
     if channel is not None:
         _loop_channels[name] = channel
@@ -147,7 +167,7 @@ def play_bgm(name, loops=-1, fade_ms=450, restart=False):
     try:
         pg.mixer.music.fadeout(120)
         pg.mixer.music.load(str(path))
-        pg.mixer.music.set_volume(MUSIC_VOLUME)
+        pg.mixer.music.set_volume(music_volume())
         pg.mixer.music.play(loops=loops, fade_ms=fade_ms)
         _current_music = name
     except pg.error:

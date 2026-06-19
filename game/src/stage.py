@@ -237,6 +237,15 @@ class StageManager:
 
     def _advance(self):
         # 다음 스테이지
+
+        # ===== 임시: 첫 보스(1-3)만 깨면 ALL STAGES CLEAR =====
+        # 아래 블록(이 주석 ~ 다음 ===== 줄)을 지우면 원래대로 끝까지 진행됩니다.
+        if self.world == 1 and self.is_boss_stage:
+            self.completed = True
+            self.clear_started_at = None
+            return
+        # ===== 임시 끝 =====
+
         if self.substage < self.SUBSTAGES:
             self.substage += 1
             return
