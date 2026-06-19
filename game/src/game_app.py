@@ -28,7 +28,7 @@ def run_game(difficulty=None):
     large_font = load.get_korean_font(38)
 
     if difficulty is None:
-        sfx.play_music("menu")
+        sfx.play_bgm("menu")
         difficulty = _choose_difficulty(screen, clock)
     else:
         difficulty = _resolve_difficulty(difficulty)
@@ -40,7 +40,7 @@ def run_game(difficulty=None):
     clear_input_state()
     sfx.stop_all(fade_ms=0)
     state = GameState(difficulty, SCREEN_HEIGHT - 50)
-    sfx.sync_game_music(state)
+    sfx.sync_bgm(state)
     running = True
     while running:
         
@@ -52,7 +52,7 @@ def run_game(difficulty=None):
             continue
         if actions.settings_pressed:
             sfx.stop_all()
-            sfx.play_music("menu")
+            sfx.play_bgm("menu")
             settings_result = _show_settings_menu(state.difficulty)
             if settings_result.get("quit_requested"):
                 running = False
@@ -67,20 +67,20 @@ def run_game(difficulty=None):
             if difficulty_changed or settings_result.get("restart_requested"):
                 state.reload_current_stage()
             clear_input_state()
-            sfx.sync_game_music(state)
+            sfx.sync_bgm(state)
             continue
         if actions.restart_requested and (
             state.player.game_over or state.stage.completed
         ):
             sfx.stop_all()
-            sfx.play("menu_confirm")
+            sfx.play_sfx("menu_confirm")
             state.restart()
             clear_input_state()
-            sfx.sync_game_music(state)
+            sfx.sync_bgm(state)
             continue
 
         update_gameplay(state, actions)
-        sfx.sync_game_music(state)
+        sfx.sync_bgm(state)
         render_game(screen, state, font, large_font)
         pg.display.flip()
 
@@ -125,5 +125,5 @@ def _show_settings_menu(current_difficulty=None):
 def _shutdown_with_quit_sound():
     sfx.stop_all(fade_ms=0)
     sfx.stop_music(fade_ms=120)
-    sfx.until_end("quit")
+    sfx.wait_to_quit("quit")
     pg.quit()

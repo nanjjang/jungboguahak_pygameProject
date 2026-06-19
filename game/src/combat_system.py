@@ -15,7 +15,7 @@ def damage_enemy(enemy, amount, source_x, state):
     dealt = enemy.take_damage(amount, source_x=source_x)
     spawn_damage_number(state.damage_numbers, dealt, enemy.rect)
     if dealt > 0:
-        sfx.play("enemy_hit", cooldown_ms=70)
+        sfx.play_sfx("enemy_hit", cooldown_ms=70)
     if enemy.defeated and enemy in state.enemies:
         state.enemies.remove(enemy)
     return dealt

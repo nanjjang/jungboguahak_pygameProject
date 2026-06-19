@@ -123,10 +123,7 @@ def current_difficulty():
 # 순서 관계없이 자유롭게 선택하는 캐릭터 세팅 화면
 # ====================================================
 def show_character_setting_menu():
-
-    if not show_popup(screen, "현재 개발 중에 있는 기능입니다! \n v2.0 업데이트를 기달려주세요!"):
-        return "quit"
-    return None
+    return show_popup(screen, "현재 개발 중에 있는 기능입니다! \n v2.0 업데이트를 기달려주세요!")
     # global current_color_idx, current_costume_idx, temp_color_idx, temp_costume_idx
 
     # # 하위 메뉴에 들어올 때 현재 적용값을 임시값으로 복사한다.
@@ -514,7 +511,7 @@ def show_settings_menu(current_game_difficulty=None):
                         diff_index = temp_diff_index
                         result["difficulty"] = current_difficulty()
                     elif selected_index == 2:
-                        if show_character_setting_menu() == "quit":
+                        if not show_character_setting_menu():
                             result["quit_requested"] = True
                             menu_running = False
                     elif selected_index == 5:

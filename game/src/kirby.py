@@ -511,7 +511,7 @@ class Kirby(pg.sprite.Sprite):
             self.held_element = None
         elif not self.is_empty():
             self.pop()
-        sfx.play("spit", cooldown_ms=220)
+        sfx.play_sfx("spit", cooldown_ms=220)
         self.spit_animation.start()
         self._shoot("star")
 
@@ -555,7 +555,7 @@ class Kirby(pg.sprite.Sprite):
         self.attack_chain_kind = None
         self.attack_chain_stage = 0
         self.attack_chain_expires_at = 0
-        sfx.play("melee", cooldown_ms=90)
+        sfx.play_sfx("melee", cooldown_ms=90)
         self._apply_attack_motion()
 
     def _finish_attack(self):
@@ -721,7 +721,7 @@ class Kirby(pg.sprite.Sprite):
         if element in self.ability_stack:
             self.pop_same_ability(element)
         self.push(element)
-        sfx.play("copy", cooldown_ms=250)
+        sfx.play_sfx("copy", cooldown_ms=250)
 
     def _shoot(self, element):
         """Projectile 생성을 위한 정보를 pending_projectiles에 임시 저장한다."""
@@ -788,7 +788,7 @@ class Kirby(pg.sprite.Sprite):
         self._stop_held_sounds()
 
         if self.hp <= 0:
-            sfx.play("player_down", cooldown_ms=600)
+            sfx.play_sfx("player_down", cooldown_ms=600)
             # 체력이 0이 되면 목숨을 줄이고, 남은 목숨이 있으면 재배치한다.
             self.lives -= 1
             if self.lives > 0:
@@ -803,7 +803,7 @@ class Kirby(pg.sprite.Sprite):
                 for beam in self._beams.values():
                     beam.deactivate()
         else:
-            sfx.play("player_hit", cooldown_ms=420)
+            sfx.play_sfx("player_hit", cooldown_ms=420)
         return dealt
 
     # ---------------------------------------------------------------- animation frames
@@ -989,7 +989,7 @@ class Kirby(pg.sprite.Sprite):
                 self.velocity_y = -10.0
                 self.is_jumping = True
                 self.hovering = False
-                sfx.play("jump", cooldown_ms=120)
+                sfx.play_sfx("jump", cooldown_ms=120)
             else:
                 # 공중에서 다시 점프를 누르면 호버 상태로 들어간다.
                 self.velocity_y = -6.0

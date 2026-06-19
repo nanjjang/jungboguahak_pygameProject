@@ -57,7 +57,7 @@ def init():
         return False
 
 
-def play(name, cooldown_ms=0):
+def play_sfx(name, cooldown_ms=0):
     """짧은 효과음을 재생한다."""
     if not _enabled or not init() or name not in SFX:
         return
@@ -76,7 +76,8 @@ def play(name, cooldown_ms=0):
     sound.play()
 
 
-def until_end(name):
+def wait_to_quit(name):
+    """to quit game, wait finish of music"""
     if not _enabled or not init() or name not in SFX:
         return
 
@@ -89,13 +90,14 @@ def until_end(name):
     if channel is None:
         return
 
+    clock = pg.time.Clock()
     while channel.get_busy():
         pg.event.pump()
-        pg.time.delay(20)
+        clock.tick(60)
 
 
-def play_loop(name):
-    """키를 누르는 동안 유지되는 효과음을 반복 재생한다."""
+def loop(name):
+    """loop"""
     if not _enabled or not init() or name not in SFX:
         return
     channel = _loop_channels.get(name)
@@ -113,7 +115,7 @@ def play_loop(name):
 
 
 def stop(name, fade_ms=70):
-    """반복 재생 중인 효과음을 멈춘다."""
+    """stop sfx or bgm"""
     channel = _loop_channels.pop(name, None)
     if channel is None:
         return
@@ -124,13 +126,19 @@ def stop(name, fade_ms=70):
 
 
 def stop_all(fade_ms=70):
-    """누르고 있는 동안 재생되는 모든 효과음을 멈춘다."""
-    for name in tuple(_loop_channels):
-        stop(name, fade_ms=fade_ms)
+    """stop all of loop sfx or bmg"""
+    channels = list(_loop_channels.values())
+    _loop_channels.clear()
+
+    for channel in channels:
+        if fade_ms:
+            channel.fadeout(fade_ms)
+        else:
+            channel.stop()
 
 
-def play_music(name, loops=-1, fade_ms=450, restart=False):
-    """배경 음악을 바꾼다."""
+def play_bgm(name, loops=-1, fade_ms=450, restart=False):
+    """charnge bgm"""
     global _current_music
     if not _enabled or not init() or name not in MUSIC:
         return
@@ -150,18 +158,18 @@ def play_music(name, loops=-1, fade_ms=450, restart=False):
         _current_music = None
 
 
-def sync_game_music(state):
-    """현재 게임 상태에 맞는 배경음을 유지한다."""
+def sync_bgm(state):
+    """play bgm with current state!!!!!!! 영어 잘하죠? ㅋ"""
     if state.player.game_over:
-        play_music("game_over", loops=0)
+        play_bgm("game_over", loops=0)
         return
     if state.stage.transitioning or state.stage.completed:
-        play_music("stage_clear", loops=0)
+        play_bgm("stage_clear", loops=0)
         return
     if state.stage.is_boss_stage:
-        play_music("boss")
+        play_bgm("boss")
         return
-    play_music("stage")
+    play_bgm("stage")
 
 
 def stop_music(fade_ms=250):

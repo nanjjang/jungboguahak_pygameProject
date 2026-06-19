@@ -40,10 +40,10 @@ class TitleMenu:
     def update(self, actions):
         """입력 상태를 받아 메뉴 선택을 바꾸거나 선택 결과를 반환한다."""
         if actions.title_quit_pressed:
-            sfx.play("menu_confirm")
+            sfx.play_sfx("menu_confirm")
             return TitleAction.QUIT
         if actions.settings_pressed:
-            sfx.play("menu_confirm")
+            sfx.play_sfx("menu_confirm")
             return TitleAction.SETTINGS
         moved = False
         if actions.up_pressed:
@@ -53,9 +53,9 @@ class TitleMenu:
             self.selected_index = (self.selected_index + 1) % len(self.actions)
             moved = True
         if moved:
-            sfx.play("menu_move", cooldown_ms=80)
+            sfx.play_sfx("menu_move", cooldown_ms=80)
         if actions.confirm_pressed:
-            sfx.play("menu_confirm")
+            sfx.play_sfx("menu_confirm")
             return self.actions[self.selected_index]
         return None
 
@@ -117,13 +117,13 @@ def show_instructions(screen, clock):
         clock.tick(FPS)
         actions = read_frame_input()
         if actions.quit_requested or actions.title_quit_pressed:
-            sfx.play("menu_confirm")
+            sfx.play_sfx("menu_confirm")
             return TitleAction.QUIT
         if actions.settings_pressed:
-            sfx.play("menu_confirm")
+            sfx.play_sfx("menu_confirm")
             return TitleAction.SETTINGS
         if actions.confirm_pressed:
-            sfx.play("menu_confirm")
+            sfx.play_sfx("menu_confirm")
             return None
 
         # 배경 위에 어두운 반투명 막을 깔아 안내 글자가 잘 보이게 한다.
