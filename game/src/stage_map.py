@@ -1,4 +1,4 @@
-"""한 번에 하나의 원본 맵 조각만 보여주는 방 단위 스테이지 데이터."""
+# 방 단위 맵
 
 from dataclasses import dataclass
 from functools import lru_cache
@@ -16,7 +16,7 @@ PLAY_FLOOR_OFFSET = 50
 
 @dataclass(frozen=True)
 class SceneryPiece:
-    """한 장의 맵 이미지를 월드 좌표에 배치한다."""
+    # 맵 이미지 조각
 
     image_name: str
     x: int
@@ -27,7 +27,7 @@ class SceneryPiece:
 
 @dataclass(frozen=True)
 class LocalDoor:
-    """현재 방에서 다른 방으로 넘어가는 검은 입구 핫스팟."""
+    # 방 이동 문
 
     door_id: str
     target_room: str
@@ -38,7 +38,7 @@ class LocalDoor:
 
 @dataclass(frozen=True)
 class StageLayout:
-    """현재 방 하나를 그리는 데 필요한 데이터."""
+    # 방 데이터
 
     room_id: str
     world_width: int
@@ -201,7 +201,7 @@ ROUTES = {
 
 
 def build_stage_layout(world, substage, base_ground_y, room_id=None):
-    """현재 스테이지의 현재 방 하나만 골라 배치한다."""
+    # 방 배치
     if substage == 3:
         room_id = "sandy_cavern"
     else:
@@ -237,7 +237,7 @@ def build_stage_layout(world, substage, base_ground_y, room_id=None):
 
 
 def local_door_rect(door):
-    """동굴문 충돌/렌더링에 쓰는 월드 좌표 사각형을 반환한다."""
+    # 문 판정
     rect = pg.Rect(0, 0, *DOOR_OPENING_SIZE)
     rect.midbottom = (door.x, door.bottom)
     return rect
@@ -260,7 +260,7 @@ def _make_platforms(spec, image_x, image_y, scale):
 
 @lru_cache(maxsize=None)
 def _auto_platforms(spec):
-    """맵 이미지에서 눈에 보이는 지형 윗면만 자동 발판으로 추출한다."""
+    # 자동 발판
     image = pg.image.load(STAGE_PARTS_ROOT / spec.image_name)
     width, height = image.get_size()
     platforms = []
@@ -281,7 +281,7 @@ def _auto_platforms(spec):
 
 
 def _merge_close_platforms(platforms):
-    """같은 높이의 가까운 조각은 하나의 발판으로 합쳐 작은 틈 오판을 줄인다."""
+    # 가까운 발판 합치기
     if not platforms:
         return ()
     ordered = sorted(platforms, key=lambda p: (p.y, p.x))

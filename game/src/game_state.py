@@ -1,4 +1,4 @@
-"""플레이 중 바뀌는 모든 상태를 한곳에 묶어 관리한다."""
+# 게임 상태
 
 import pygame as pg
 
@@ -8,7 +8,7 @@ from src.stage import StageManager
 
 
 def _create_run(difficulty, ground_y, world=1, substage=1):
-    """새 게임 또는 재시작 때 필요한 플레이어, 스테이지, 적 목록을 만든다."""
+    # 새 게임 준비
     stage = StageManager(difficulty, ground_y)
     stage.world = world
     stage.substage = substage
@@ -23,10 +23,9 @@ def _create_run(difficulty, ground_y, world=1, substage=1):
 
 
 class GameState:
-    """게임 한 판에서 계속 변하는 객체들을 담는 상태 컨테이너."""
+    # 게임 한 판 상태
 
     def __init__(self, difficulty, ground_y):
-        # difficulty와 ground_y는 재시작할 때도 계속 재사용되는 기본 설정이다.
         self.difficulty = difficulty
         self.ground_y = ground_y
         self.projectiles = pg.sprite.Group()
@@ -39,7 +38,7 @@ class GameState:
         self.restart()
 
     def restart(self):
-        """현재 난이도로 처음부터 다시 시작한다."""
+        # 처음부터 다시
         self.player, self.stage, self.enemies = _create_run(
             self.difficulty,
             self.ground_y,
@@ -47,7 +46,7 @@ class GameState:
         self._clear_runtime_state()
 
     def reload_current_stage(self):
-        """현재 world/substage는 유지하고 스테이지를 새로 불러온다."""
+        # 현재 스테이지 다시
         world = 1
         substage = 1
         if self.stage is not None:
@@ -63,7 +62,7 @@ class GameState:
         self._clear_runtime_state()
 
     def set_difficulty(self, difficulty):
-        """앞으로 생성되는 적과 HUD가 사용할 난이도를 변경한다."""
+        # 난이도 변경
         if difficulty not in DIFFICULTY_SETTINGS:
             return
         self.difficulty = difficulty
@@ -71,21 +70,21 @@ class GameState:
             self.stage.difficulty = difficulty
 
     def _clear_runtime_state(self):
-        """발사체, 데미지 숫자, 카메라처럼 스테이지 재로딩 때 비울 값을 정리한다."""
+        # 진행 중 값 정리
         self.projectiles.empty()
         self.enemy_projectiles.empty()
         self.damage_numbers.clear()
         self.camera_x = 0.0
 
     def enter_stage(self, enemies):
-        """다음 스테이지로 넘어갈 때 적/발사체/카메라를 새 상태로 정리한다."""
+        # 다음 스테이지
         self.enemies = enemies
         self.projectiles.empty()
         self.enemy_projectiles.empty()
         self.damage_numbers.clear()
         self.camera_x = 0.0
         if self.stage.completed:
-            # 전체 클리어 상태에서는 플레이어 위치를 새 스테이지용으로 바꾸지 않는다.
+            # 전체 클리어
             return
 
         self.player.set_world_bounds(self.stage.world_width)
@@ -95,11 +94,11 @@ class GameState:
             spawn_bottom - self.player.rect.height,
         )
         self.player.reset_position()
-        # 새 스테이지 시작 직후 바로 맞지 않도록 짧은 무적 시간을 준다.
+        # 시작 무적
         self.player.invulnerable_until = pg.time.get_ticks() + 900
 
     def enter_room(self, enemies):
-        """동굴문으로 다른 방에 들어갈 때 전투 상태와 카메라를 정리한다."""
+        # 방 이동
         self.enemies = enemies
         self.projectiles.empty()
         self.enemy_projectiles.empty()
@@ -109,11 +108,11 @@ class GameState:
         self.player.invulnerable_until = pg.time.get_ticks() + 650
 
     def update_camera(self, reset=False):
-        """플레이어가 화면 중앙 근처에 오도록 가로 카메라 위치를 계산한다."""
+        # 카메라 이동
         if reset:
             self.camera_x = 0.0
 
-        # 카메라는 월드 양 끝을 넘어가지 않게 0과 최대값 사이로 제한한다.
+        # 맵 밖으로 못 나가게
         max_camera_x = max(0, self.stage.world_width - SCREEN_WIDTH)
         target = self.player.rect.centerx - SCREEN_WIDTH // 2
         if target < 0:
@@ -123,7 +122,7 @@ class GameState:
         self.camera_x = float(target)
 
     def update_damage_numbers(self):
-        """떠오르는 데미지 숫자를 움직이고, 시간이 끝난 숫자는 제거한다."""
+        # 데미지 숫자
         visible_numbers = []
         for number in self.damage_numbers:
             number.update()

@@ -1,4 +1,4 @@
-"""난이도 선택 화면."""
+# 난이도 선택
 
 from pathlib import Path
 import pygame as pg

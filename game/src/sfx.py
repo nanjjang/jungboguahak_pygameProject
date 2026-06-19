@@ -73,7 +73,7 @@ def play_sfx(name, cooldown_ms=0):
 
 
 def wait_to_quit(name):
-    """to quit game, wait finish of music"""
+    # 종료음 기다리기
     if not _enabled or not init() or name not in SFX:
         return
 
@@ -93,7 +93,7 @@ def wait_to_quit(name):
 
 
 def loop(name):
-    """loop"""
+    # 반복 재생
     if not _enabled or not init() or name not in SFX:
         return
     channel = _loop_channels.get(name)
@@ -111,7 +111,7 @@ def loop(name):
 
 
 def stop(name, fade_ms=70):
-    """stop sfx or bgm"""
+    # 소리 멈춤
     channel = _loop_channels.pop(name, None)
     if channel is None:
         return
@@ -122,7 +122,7 @@ def stop(name, fade_ms=70):
 
 
 def stop_all(fade_ms=70):
-    """stop all of loop sfx or bmg"""
+    # 반복음 전부 멈춤
     channels = list(_loop_channels.values())
     _loop_channels.clear()
 
@@ -134,7 +134,7 @@ def stop_all(fade_ms=70):
 
 
 def play_bgm(name, loops=-1, fade_ms=450, restart=False):
-    """charnge bgm"""
+    # 배경음 변경
     global _current_music
     if not _enabled or not init() or name not in MUSIC:
         return
@@ -155,7 +155,7 @@ def play_bgm(name, loops=-1, fade_ms=450, restart=False):
 
 
 def sync_bgm(state):
-    """play bgm with current state!!!!!!! 영어 잘하죠? ㅋ"""
+    # 상태별 배경음
     if state.player.game_over:
         play_bgm("game_over", loops=0)
         return
@@ -169,7 +169,7 @@ def sync_bgm(state):
 
 
 def stop_music(fade_ms=250):
-    """현재 재생 중인 배경음을 멈춘다."""
+    # 배경음 멈춤
     global _current_music
     if not pg.mixer.get_init():
         return

@@ -1,4 +1,4 @@
-"""적 캐릭터, 적 발사체, 적 AI 행동을 정의하는 파일."""
+# 적 캐릭터
 
 import random
 
@@ -14,7 +14,7 @@ from src.constants import (
 )
 
 LEVEL_MULTIPLIERS = {
-    # 월드가 뒤로 갈수록 적 체력/능력치를 조금씩 올리기 위한 배율이다.
+    # 월드별 강화
     1: 1.0,
     2: 1.12,
     3: 1.24,
@@ -24,7 +24,7 @@ LEVEL_MULTIPLIERS = {
 
 
 class EnemyProjectile(pg.sprite.Sprite):
-    """적이 쏘는 발사체 Sprite."""
+    # 적 발사체
 
     def __init__(
         self,
@@ -38,7 +38,6 @@ class EnemyProjectile(pg.sprite.Sprite):
         world_width=SCREEN_WIDTH,
     ):
         super().__init__()
-        # dx/dy는 매 프레임 더해지는 이동량이다.
         self.dx = float(dx)
         self.dy = float(dy)
         self.damage = max(1, int(damage))
@@ -54,7 +53,7 @@ class EnemyProjectile(pg.sprite.Sprite):
         self._y = float(self.rect.y)
 
     def update(self):
-        """발사체를 움직이고, 월드 밖으로 나가면 제거한다."""
+        # 발사체 이동
         self._animate()
         self._x += self.dx
         self._y += self.dy
@@ -69,7 +68,7 @@ class EnemyProjectile(pg.sprite.Sprite):
             self.kill()
 
     def _make_frames(self, radius):
-        """속성에 맞는 발사체 이미지를 만든다."""
+        # 발사체 이미지
         if self.element == "electric":
             size = 36 if radius >= 9 else 28
             frames = []
@@ -90,7 +89,7 @@ class EnemyProjectile(pg.sprite.Sprite):
         return [image]
 
     def _animate(self):
-        """여러 프레임이 있는 발사체만 애니메이션을 진행한다."""
+        # 프레임 애니메이션
         if len(self.frames) == 1:
             return
         now = pg.time.get_ticks()
@@ -106,7 +105,7 @@ class EnemyProjectile(pg.sprite.Sprite):
 
 
 class Enemy(pg.sprite.Sprite):
-    """일반 적과 보스를 모두 표현하는 Sprite 클래스."""
+    # 적 본체
 
     def __init__(
         self,
@@ -123,7 +122,6 @@ class Enemy(pg.sprite.Sprite):
     ):
         super().__init__()
         settings = DIFFICULTY_SETTINGS[difficulty]
-        # element와 ai_type은 적의 색, 공격 방식, 스프라이트를 결정한다.
         self.element = element
         self.color = ELEMENTS[element]["color"]
         self.ai_type = data["ai"]
@@ -135,7 +133,7 @@ class Enemy(pg.sprite.Sprite):
         scale = 1.65 if is_boss else 1.0
         self.frames = []
         for frame in frames:
-            # 보스는 같은 스프라이트를 더 크게 키워 사용한다.
+            # 보스는 크게
             width = max(1, round(frame.get_width() * scale))
             height = max(1, round(frame.get_height() * scale))
             self.frames.append(pg.transform.scale(frame, (width, height)))
@@ -148,7 +146,7 @@ class Enemy(pg.sprite.Sprite):
         level_multiplier = LEVEL_MULTIPLIERS.get(level, LEVEL_MULTIPLIERS[5])
         boss_hp_multiplier = 5.5 if is_boss else 1.0
         boss_damage_multiplier = 1.45 if is_boss else 1.0
-        # 난이도, 월드 번호, 보스 여부를 모두 반영해 실제 전투 수치를 만든다.
+        # 전투 수치
         self.max_hp = max(
             1,
             round(
@@ -189,7 +187,7 @@ class Enemy(pg.sprite.Sprite):
         self.state = "patrol"
         self.state_until = 0
         self.next_attack_at = pg.time.get_ticks() + random.randint(500, 1000)
-        # 돌진형 공격은 시작 시점에 방향을 잠가 중간에 휘지 않게 한다.
+        # 돌진 방향 고정
         self.locked_direction = -1
         self.swoop_target = None
         self.air_moving_down = True
@@ -198,44 +196,44 @@ class Enemy(pg.sprite.Sprite):
         self.last_melee_serial = -1
 
     def set_spawn_bottom(self, bottom):
-        """적의 바닥 위치를 맞추고 순찰 기준 위치도 함께 갱신한다."""
+        # 시작 바닥
         self.rect.bottom = bottom
         self.home_y = float(self.rect.y)
         self.start_x = float(self.rect.x)
 
     def update(self, kirby=None, kirby_rect=None, ground_y=None, engage=True):
-        """현재 상태에 따라 흡입, AI 행동, 순찰, 애니메이션을 진행한다."""
+        # 적 갱신
         if self.defeated:
             return
         if ground_y is not None:
             self.ground_y = ground_y
         target_rect = kirby.rect if kirby is not None else kirby_rect
         if self.being_inhaled and target_rect is not None and self.inhaleable:
-            # Kirby가 흡입 중이면 AI보다 흡입 이동이 우선이다.
+            # 흡입 우선
             self._pull_toward(target_rect)
         elif target_rect is not None and (self.is_boss or engage):
             self.engaged = True
             self._run_ai(target_rect)
         else:
-            # 멀리 있는 적은 적극 공격 대신 가벼운 순찰만 한다.
+            # 멀면 순찰
             self.engaged = False
             self._passive_patrol()
             self._keep_in_bounds()
         self._animate()
 
     def can_recognize(self, target_rect):
-        """플레이어가 이 적의 인식 범위 안에 있는지 확인한다."""
+        # 인식 범위
         if self.is_boss:
             return True
         horizontal = abs(target_rect.centerx - self.rect.centerx)
         vertical = abs(target_rect.centery - self.rect.centery)
         range_x = self.lose_range if self.engaged else self.detect_range
-        # 이미 교전 중이면 바로 포기하지 않도록 lose_range를 더 넓게 쓴다.
+        # 교전 중이면 조금 더 봄
         range_y = self.lose_height if self.engaged else self.detect_height
         return horizontal <= range_x and vertical <= range_y
 
     def take_damage(self, amount, source_x=None):
-        """피해를 적용하고, 체력이 0이 되면 defeated 상태로 바꾼다."""
+        # 피해 처리
         if self.defeated:
             return 0
         dealt = round(amount)
@@ -247,7 +245,7 @@ class Enemy(pg.sprite.Sprite):
         now = pg.time.get_ticks()
         self.hit_flash_until = now + 110
         if source_x is not None and not self.is_boss:
-            # 일반 적은 맞은 방향 반대로 살짝 밀려난다.
+            # 맞으면 밀림
             direction = 1 if self.rect.centerx >= source_x else -1
             self.rect.x += direction * 5
         if self.hp <= 0:
@@ -257,7 +255,7 @@ class Enemy(pg.sprite.Sprite):
         return dealt
 
     def draw(self, surface, camera_x=0):
-        """적 이미지, 속성 마커, 체력바를 화면에 그린다."""
+        # 적 그리기
         image = self.image
         if pg.time.get_ticks() < self.hit_flash_until:
             image = image.copy()
@@ -270,9 +268,9 @@ class Enemy(pg.sprite.Sprite):
         pg.draw.circle(surface, (255, 255, 255), (draw_rect.centerx, marker_y), 7, 1)
         self._draw_hp(surface, camera_x)
 
-    # -------------------------------------------------------------- AI
+    # 행동
     def _run_ai(self, target):
-        """적 종류에 맞는 AI 함수로 행동을 분기한다."""
+        # 행동 고르기
         now = pg.time.get_ticks()
         horizontal_distance = abs(target.centerx - self.rect.centerx)
         vertical_distance = abs(target.centery - self.rect.centery)
@@ -296,7 +294,7 @@ class Enemy(pg.sprite.Sprite):
         self._keep_in_bounds()
 
     def _chaser_ai(self, target, horizontal_distance, now):
-        """불 속성처럼 플레이어에게 다가가 근접 돌진하는 AI."""
+        # 추격형
         if horizontal_distance > self.lose_range:
             self.state = "patrol"
             self._patrol()
@@ -312,7 +310,7 @@ class Enemy(pg.sprite.Sprite):
             self._move_x(self.speed * 1.25)
 
     def _shooter_ai(self, target, horizontal_distance, now):
-        """전기 속성처럼 거리를 유지하며 발사체를 쏘는 AI."""
+        # 원거리형
         if horizontal_distance > self.lose_range:
             self.state = "patrol"
             self._patrol()
@@ -331,7 +329,7 @@ class Enemy(pg.sprite.Sprite):
             self.next_attack_at = now + self.attack_cooldown
 
     def _swooper_ai(self, target, horizontal_distance, vertical_distance, now):
-        """물 속성처럼 공중에서 목표 지점으로 급강하하는 AI."""
+        # 급강하형
         if self.state == "swoop" and now < self.state_until and self.swoop_target:
             self._move_toward(*self.swoop_target, self.speed * 2.0)
             return
@@ -357,7 +355,7 @@ class Enemy(pg.sprite.Sprite):
             self._air_patrol()
 
     def _charger_ai(self, target, horizontal_distance, now):
-        """땅 속성처럼 준비 동작 후 한 방향으로 돌진하는 AI."""
+        # 돌진형
         if self.state == "windup":
             if now >= self.state_until:
                 self.state = "charge"
@@ -377,7 +375,7 @@ class Enemy(pg.sprite.Sprite):
         self._patrol()
 
     def _boss_ai(self, target, horizontal_distance, now):
-        """보스 전용 AI. 돌진과 다중 발사체 공격을 섞어서 사용한다."""
+        # 보스 행동
         if self.state == "boss_dash":
             if now < self.state_until:
                 self.rect.x += round(self.locked_direction * self.speed * 3.2)
@@ -401,13 +399,13 @@ class Enemy(pg.sprite.Sprite):
             self._move_x(self.speed)
 
     def _shoot_at(self, target, speed, dy_override=None, radius=7):
-        """목표 방향을 향해 적 발사체를 만들고 pending_projectiles에 저장한다."""
+        # 발사체 만들기
         direction = 1 if target.centerx >= self.rect.centerx else -1
         shot_dx = speed * direction
 
         shot_dy = dy_override
         if shot_dy is None:
-            # 난이도별 aim_error를 넣어 쉬운 난이도에서는 조준이 덜 정확하게 한다.
+            # 난이도별 조준 흔들림
             target_y = target.centery
             target_y += random.randint(-self.aim_error, self.aim_error)
             vertical_difference = target_y - self.rect.centery
@@ -431,9 +429,9 @@ class Enemy(pg.sprite.Sprite):
             )
         )
 
-    # -------------------------------------------------------------- movement
+    # 이동
     def _patrol(self):
-        """시작 위치와 patrol_range 사이를 좌우로 오가는 기본 순찰."""
+        # 기본 순찰
         self.state = "patrol"
         if self.facing_right:
             self.rect.x += round(self.speed)
@@ -445,14 +443,14 @@ class Enemy(pg.sprite.Sprite):
                 self.facing_right = True
 
     def _passive_patrol(self):
-        """비활성 상태에서 적 종류에 맞는 기본 순찰을 한다."""
+        # 대기 순찰
         if self.ai_type == "swooper":
             self._air_patrol()
         else:
             self._patrol()
 
     def _air_patrol(self):
-        """공중 적이 좌우 이동과 함께 위아래로 살짝 떠다니게 한다."""
+        # 공중 순찰
         self._patrol()
         if self.air_moving_down:
             self.rect.y += 1
@@ -464,12 +462,12 @@ class Enemy(pg.sprite.Sprite):
                 self.air_moving_down = True
 
     def _move_x(self, amount):
-        """현재 바라보는 방향으로 amount만큼 이동한다."""
+        # 좌우 이동
         direction = 1 if self.facing_right else -1
         self.rect.x += round(direction * amount)
 
     def _move_toward(self, x, y, speed):
-        """목표 좌표 쪽으로 x/y를 각각 조금씩 이동한다."""
+        # 목표로 이동
         step = max(1, round(speed))
         if x < self.rect.centerx:
             self.rect.x -= step
@@ -482,11 +480,11 @@ class Enemy(pg.sprite.Sprite):
             self.rect.y += step
 
     def _pull_toward(self, kirby_rect):
-        """흡입될 때 Kirby 중심을 향해 빠르게 끌려가게 한다."""
+        # 빨려가기
         self._move_toward(kirby_rect.centerx, kirby_rect.centery, 10)
 
     def _keep_in_bounds(self):
-        """적이 스테이지 밖이나 땅 아래로 빠지지 않게 위치를 제한한다."""
+        # 맵 안에 두기
         if self.rect.left < 0:
             self.rect.left = 0
         if self.rect.right > self.world_width:
@@ -497,7 +495,7 @@ class Enemy(pg.sprite.Sprite):
             self.rect.top = 8
 
     def _animate(self):
-        """현재 방향에 맞춰 스프라이트 프레임을 넘긴다."""
+        # 적 애니메이션
         now = pg.time.get_ticks()
         if now - self.anim_timer >= self.anim_speed:
             self.anim_timer = now
@@ -506,7 +504,7 @@ class Enemy(pg.sprite.Sprite):
         self.image = raw if self.facing_right else pg.transform.flip(raw, True, False)
 
     def _draw_hp(self, surface, camera_x=0):
-        """적 머리 위에 작은 체력바를 그린다."""
+        # 적 HP 바
         width = 74 if self.is_boss else max(28, self.rect.width)
         height = 7 if self.is_boss else 4
         x = self.rect.centerx - round(camera_x) - width // 2
@@ -527,7 +525,7 @@ def create_enemy(
     ground_y=None,
     world_width=SCREEN_WIDTH,
 ):
-    """상수 데이터와 이미지 파일을 읽어 Enemy 객체 하나를 생성한다."""
+    # 적 만들기
     data = ENEMY_DATA[element]
     frames = []
     for name in data["frames"]:

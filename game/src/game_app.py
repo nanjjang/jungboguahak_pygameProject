@@ -1,4 +1,4 @@
-# r게임 흐름 관리
+# 게임 흐름
 
 import pygame as pg
 

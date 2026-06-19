@@ -1,4 +1,4 @@
-"""게임 한 프레임을 업데이트하는 파일."""
+# 게임 업데이트
 
 from src.combat_system import resolve_combat
 from src.constants import SCREEN_WIDTH
@@ -61,7 +61,7 @@ def _update_stage_transition(state, actions):
             state.enter_room(room_enemies)
             return
 
-        # 로컬 문이 없을 때만 스테이지 출구 문 입장을 시도한다.
+        # 출구 문 시도
 
     replacement = state.stage.update(
         state.enemies,

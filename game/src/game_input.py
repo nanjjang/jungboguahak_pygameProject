@@ -28,36 +28,6 @@ KEY_SCANCODES = {
     "stage_enter": pg.KSCAN_UP,
 }
 
-# 저의 처절한 하드코딩 시도를 기억해주세요 ㅜㅜ
-# KOREAN_TO_KEY = {
-#     "ㄱ": pg.K_r,
-#     "ㄴ": pg.K_s,
-#     "ㄷ": pg.K_e,
-#     "ㄹ": pg.K_f,
-#     "ㅁ": pg.K_a,
-#     "ㅂ": pg.K_q,
-#     "ㅅ": pg.K_t,
-#     "ㅇ": pg.K_d,
-#     "ㅈ": pg.K_w,
-#     "ㅊ": pg.K_c,
-#     "ㅋ": pg.K_z,
-#     "ㅌ": pg.K_x,
-#     "ㅍ": pg.K_v,
-#     "ㅎ": pg.K_g,
-#     "ㅏ": pg.K_k,
-#     "ㅐ": pg.K_o,
-#     "ㅑ": pg.K_i,
-#     "ㅓ": pg.K_j,
-#     "ㅔ": pg.K_p,
-#     "ㅕ": pg.K_u,
-#     "ㅗ": pg.K_h,
-#     "ㅛ": pg.K_y,
-#     "ㅜ": pg.K_n,
-#     "ㅠ": pg.K_b,
-#     "ㅡ": pg.K_m,
-#     "ㅣ": pg.K_l,
-# }
-
 NAV_UP_KEYS = (pg.K_UP,)
 NAV_DOWN_KEYS = (pg.K_DOWN,)
 NAV_LEFT_KEYS = (pg.K_LEFT,)
@@ -95,7 +65,7 @@ _HELD_SCANCODES = set()
 
 
 class FrameInput:
-    """한 프레임 동안의 입력 상태."""
+    # 한 프레임 입력
 
     def __init__(self):
         self.quit_requested = False
@@ -128,7 +98,7 @@ class FrameInput:
 
 
 def read_frame_input():
-    """pygame 이벤트와 현재 키 상태를 읽어서 FrameInput으로 반환한다."""
+    # 입력 읽기
     actions = FrameInput()
     for event in pg.event.get():
         if event.type == pg.QUIT:
@@ -222,7 +192,7 @@ def _clear_held_keys():
 
 
 def clear_input_state():
-    """화면 전환 직후 이전 화면에서 누르고 있던 키 상태를 버린다."""
+    # 이전 입력 버리기
     _clear_held_keys()
     pg.event.clear((pg.KEYDOWN, pg.KEYUP))
 
@@ -232,7 +202,7 @@ def _held_action(held, action):
 
 
 def _held_any(held, keys, scancodes=()):
-    """여러 키 후보 중 하나라도 눌려 있으면 True를 반환한다."""
+    # 누른 키 확인
     for key in keys:
         if key in _HELD_KEYS or _pressed_key(held, key):
             return True

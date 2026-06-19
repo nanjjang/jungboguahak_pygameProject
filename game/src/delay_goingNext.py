@@ -1,4 +1,4 @@
-"""스테이지 클리어 때 다음 스테이지로 넘어갈때 딜레이 주는 파일"""
+# 클리어 딜레이
 
 from functools import lru_cache
 

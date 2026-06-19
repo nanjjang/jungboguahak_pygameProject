@@ -1,4 +1,4 @@
-"""스테이지 진행, 적 배치, 출구 문 상태를 관리하는 파일."""
+# 스테이지 관리
 
 import pygame as pg
 
@@ -16,13 +16,13 @@ FLOOR_STEP_DOWN = 80
 
 
 class StageManager:
-    """5개 월드와 각 월드의 일반 스테이지 2개, 보스 스테이지 1개를 관리한다."""
+    # 스테이지 진행
 
     TOTAL_WORLDS = 5
     SUBSTAGES = 3
 
     def __init__(self, difficulty, ground_y):
-        """새 게임을 시작할 때 첫 스테이지 상태를 만든다."""
+        # 첫 스테이지
         if difficulty not in DIFFICULTY_SETTINGS:
             raise ValueError(f"Unknown difficulty: {difficulty}")
         self.difficulty = difficulty
@@ -41,21 +41,21 @@ class StageManager:
 
     @property
     def label(self):
-        """HUD에 표시할 현재 스테이지 번호를 만든다."""
+        # 스테이지 번호
         return f"{self.world}-{self.substage}"
 
     @property
     def is_boss_stage(self):
-        """각 월드의 세 번째 스테이지는 보스 스테이지이다."""
+        # 보스 스테이지
         return self.substage == self.SUBSTAGES
 
     @property
     def transitioning(self):
-        """클리어 연출 중이면 True이다."""
+        # 전환 중
         return self.clear_started_at is not None
 
     def spawn_current(self):
-        """현재 world/substage에 맞는 적 목록과 지형 정보를 새로 만든다."""
+        # 현재 스테이지 생성
         self.stage_started_at = pg.time.get_ticks()
         self.clear_started_at = None
         self.room_id = None
@@ -70,21 +70,21 @@ class StageManager:
 
     @property
     def terrain_rects(self):
-        """Kirby가 착지할 수 있는 추가 발판 목록을 반환한다."""
+        # 발판 목록
         return self.layout.platforms
 
     @property
     def floor_y(self):
-        """현재 방에서 플레이어와 적이 서는 기본 바닥 높이."""
+        # 기본 바닥
         return self.layout.floor_y
 
     @property
     def spawn_position(self):
-        """현재 방에 입장했을 때 Kirby가 나타날 위치."""
+        # 시작 위치
         return self.layout.spawn_x, self.layout.spawn_bottom
 
     def floor_at_x(self, x, preferred_y=None):
-        """월드 x좌표에서 가장 알맞은 지형 윗면 높이를 찾는다."""
+        # 위치별 바닥
         candidates = []
         for rect in self.layout.platforms:
             if rect.left + 3 <= x <= rect.right - 3:
@@ -104,35 +104,35 @@ class StageManager:
         return min(reachable, key=lambda floor_y: abs(floor_y - preferred_y))
 
     def goal_unlocked(self, enemies):
-        """출구 문을 열 수 있는 상태인지 확인한다."""
+        # 출구 열림
         if not self.is_boss_stage:
-            # 일반 스테이지는 문 근처로 가면 바로 입장할 수 있다.
+            # 일반 스테이지
             return True
         for enemy in enemies:
-            # 보스 스테이지는 보스를 쓰러뜨려야 문이 열린다.
+            # 보스 먼저 잡기
             if enemy.is_boss and not enemy.defeated:
                 return False
         return True
 
     def near_goal(self, player_rect):
-        """플레이어가 문 근처에 있는지 약간 넓은 충돌 범위로 확인한다."""
+        # 출구 근처
         if self.goal_rect is None:
             return False
         return player_rect.colliderect(self.goal_rect.inflate(36, 20))
 
     def _near_local_door(self, player_rect):
-        """플레이어가 닿은 로컬 동굴문을 찾는다."""
+        # 가까운 동굴문
         for door in self.layout.doors:
             if self._near_door_rect(player_rect, local_door_rect(door)):
                 return door
         return None
 
     def _near_door_rect(self, player_rect, door_rect):
-        """문보다 살짝 넓은 입장 판정으로 가까이 있는지 확인한다."""
+        # 문 판정
         return player_rect.colliderect(door_rect.inflate(42, 96))
 
     def try_enter_local_door(self, player):
-        """동굴문 앞에서 입장하면 대상 방으로 맵을 교체하고 적을 새로 만든다."""
+        # 방 이동 시도
         source = self._near_local_door(player.rect)
         if source is None:
             return None
@@ -157,13 +157,13 @@ class StageManager:
         return self._spawn_route_enemies()
 
     def update(self, enemies, player_rect=None, enter_pressed=False):
-        """문 앞에서 입장 키를 눌렀을 때 스테이지 전환을 시작하거나 끝낸다."""
+        # 스테이지 전환
         if self.completed:
             return None
 
         now = pg.time.get_ticks()
         if self.transitioning:
-            # 클리어 하면 일정 시간 후 다음 스테이지로 이동
+            # 클리어 대기
             if now - self.clear_started_at < animation_duration_ms():
                 return None
             self._advance()
@@ -177,19 +177,19 @@ class StageManager:
             and self.near_goal(player_rect)
             and self.goal_unlocked(enemies)
         ):
-            # 조건이 모두 맞으면 지금 시간을 기록해서 클리어 연출 상태로 들어간다.
+            # 클리어 시작
             sfx.stop_all()
             self.clear_started_at = now
         return None
 
     def draw_environment(self, surface, camera_x, enemies, font, player_rect=None):
-        """스테이지 배경과 출구 문을 그린다."""
+        # 배경이랑 문
         self.scenery.draw(surface, camera_x)
         self._draw_local_doors(surface, camera_x, font, player_rect)
         self._draw_goal(surface, camera_x, enemies, font, player_rect)
 
     def _draw_local_doors(self, surface, camera_x, font, player_rect):
-        """스테이지 안에서 서로 이어지는 작은 동굴문을 그린다."""
+        # 동굴문 그리기
         for door in self.layout.doors:
             world_rect = local_door_rect(door)
             rect = world_rect.move(-round(camera_x), 0)
@@ -204,7 +204,7 @@ class StageManager:
                 self._draw_enter_label(surface, font, "↑ 이동", rect)
 
     def _draw_goal(self, surface, camera_x, enemies, font, player_rect):
-        """문, 문 주변 빛, 입장 안내 문구를 그린다."""
+        # 출구 그리기
         if self.goal_rect is None:
             return
 
@@ -228,7 +228,7 @@ class StageManager:
         self._draw_enter_label(surface, font, label_text, rect, color=color)
 
     def _draw_enter_label(self, surface, font, text, rect, color=(255, 255, 255)):
-        """문 위에 입장 안내 문구를 그림자와 함께 그린다."""
+        # 입장 안내
         shadow = font.render(text, True, (45, 20, 30))
         label = font.render(text, True, color)
         label_rect = label.get_rect(midbottom=(rect.centerx, rect.top - 12))
@@ -236,7 +236,7 @@ class StageManager:
         surface.blit(label, label_rect)
 
     def _advance(self):
-        """다음 substage 또는 다음 world로 이동하고, 마지막이면 전체 클리어 처리한다."""
+        # 다음 스테이지
         if self.substage < self.SUBSTAGES:
             self.substage += 1
             return
@@ -248,11 +248,11 @@ class StageManager:
         self.clear_started_at = None
 
     def _make_goal_rect(self):
-        """스테이지 오른쪽 끝 근처에 출구 문 충돌 영역을 만든다."""
+        # 출구 영역
         return self.layout.goal_rect
 
     def _make_layout(self):
-        """잘라낸 이미지 조각을 현재 스테이지 길이에 맞게 배치한다."""
+        # 맵 구성
         return build_stage_layout(
             self.world,
             self.substage,
@@ -261,7 +261,7 @@ class StageManager:
         )
 
     def _make_scenery(self):
-        """현재 world/substage에 맞는 배경 객체를 만든다."""
+        # 배경 구성
         return StageScenery(
             self.world,
             self.substage,
@@ -271,7 +271,7 @@ class StageManager:
         )
 
     def _spawn_route_enemies(self):
-        """일반 길 스테이지에 배치할 적들을 거리 간격에 맞춰 만든다."""
+        # 일반 적 생성
         settings = DIFFICULTY_SETTINGS[self.difficulty]
         count = 5
         if self.substage == 2:
@@ -282,7 +282,7 @@ class StageManager:
             count += 1
         count += settings["spawn_bonus"]
         if count < 4:
-            # 쉬움 난이도 보정이 있어도 너무 적어지지는 않게 최소 수를 보장한다.
+            # 최소 적 수
             count = 4
         room_cap = max(3, self.world_width // 320)
         count = min(count, room_cap)
@@ -297,7 +297,7 @@ class StageManager:
         spacing = (route_end - route_start) / (count - 1)
 
         for index in range(count):
-            # 속성은 fire/electric/water/earth 순서로 반복해서 다양하게 배치한다.
+            # 속성 돌아가며 배치
             element = elements[index % len(elements)]
             offset = -35 if index % 2 == 0 else 35
             x = round(route_start + spacing * index + offset)
@@ -312,7 +312,7 @@ class StageManager:
             )
             fly_offset = 0
             if element == "water":
-                # 물 속성 적은 새처럼 떠다니므로 바닥보다 위에 배치한다.
+                # 물 속성은 공중에
                 fly_offset = 90
                 if index % 2 == 1:
                     fly_offset = 125
@@ -322,7 +322,7 @@ class StageManager:
         return enemies
 
     def _spawn_boss(self):
-        """현재 월드 번호에 맞는 보스 한 마리를 만든다."""
+        # 보스 생성
         element = BOSS_ELEMENTS[self.world - 1]
         enemy = create_enemy(
             element,

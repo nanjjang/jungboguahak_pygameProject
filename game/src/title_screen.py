@@ -1,4 +1,4 @@
-"""게임 시작 전 타이틀 메뉴와 조작 방법 화면을 담당한다."""
+# 타이틀 화면
 
 from enum import Enum
 
@@ -11,7 +11,7 @@ from src import sfx
 
 
 class TitleAction(Enum):
-    """타이틀 화면에서 game_app.py로 돌려줄 사용자의 선택."""
+    # 타이틀 선택
 
     START = "start"
     INSTRUCTIONS = "instructions"
@@ -20,10 +20,9 @@ class TitleAction(Enum):
 
 
 class TitleMenu:
-    """선택 인덱스와 타이틀 배경 이미지를 보관하는 메뉴 객체."""
+    # 타이틀 메뉴
 
     def __init__(self):
-        # selected_index는 START/INSTRUCTIONS/QUIT 중 현재 선택된 항목 위치이다.
         self.selected_index = 0
         self.actions = (
             TitleAction.START,
@@ -38,7 +37,7 @@ class TitleMenu:
         self.help_font = load.get_korean_font(18)
 
     def update(self, actions):
-        """입력 상태를 받아 메뉴 선택을 바꾸거나 선택 결과를 반환한다."""
+        # 메뉴 입력
         if actions.title_quit_pressed:
             sfx.play_sfx("menu_confirm")
             return TitleAction.QUIT
@@ -60,7 +59,7 @@ class TitleMenu:
         return None
 
     def draw(self, surface):
-        """현재 선택된 메뉴에 맞는 배경과 하단 조작 안내를 그린다."""
+        # 메뉴 그리기
         surface.blit(self.backgrounds[self.selected_index], (0, 0))
         guide_text = "↑ ↓ 선택    ENTER 결정    ESC 설정    Q 종료"
         guide_shadow = self.help_font.render(guide_text, True, (20, 20, 28))
@@ -71,7 +70,7 @@ class TitleMenu:
 
 
 def show_title_screen(screen, clock):
-    """사용자가 시작/조작 방법/종료 중 하나를 고를 때까지 타이틀 화면을 반복한다."""
+    # 타이틀 루프
     menu = TitleMenu()
     while True:
         clock.tick(FPS)
@@ -81,7 +80,7 @@ def show_title_screen(screen, clock):
         action = menu.update(actions)
         if action is not None:
             if action == TitleAction.INSTRUCTIONS:
-                # 조작 방법 화면에서 돌아오면 타이틀 화면을 계속 보여준다.
+                # 안내 보고 돌아옴
                 instruction_action = show_instructions(screen, clock)
                 if instruction_action == TitleAction.QUIT:
                     return TitleAction.QUIT
@@ -95,7 +94,7 @@ def show_title_screen(screen, clock):
 
 
 def show_instructions(screen, clock):
-    """조작 방법 안내 화면을 그리고, ENTER를 누르면 타이틀로 돌아간다."""
+    # 조작 방법 화면
     background = _load_cover("menu2.png")
     title_font = load.get_korean_font(34)
     line_font = load.get_korean_font(21)
@@ -126,14 +125,14 @@ def show_instructions(screen, clock):
             sfx.play_sfx("menu_confirm")
             return None
 
-        # 배경 위에 어두운 반투명 막을 깔아 안내 글자가 잘 보이게 한다.
+        # 어둡게 덮기
         screen.blit(background, (0, 0))
         shade = pg.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pg.SRCALPHA)
         shade.fill((0, 0, 0, 92))
         screen.blit(shade, (0, 0))
 
         panel = pg.Rect(130, 62, 540, 468)
-        # 조작 목록이 들어갈 흰색 안내 패널을 그린다.
+        # 안내 패널
         pg.draw.rect(screen, (255, 255, 250), panel, border_radius=18)
         pg.draw.rect(screen, (190, 24, 42), panel, width=6, border_radius=18)
 
@@ -154,7 +153,7 @@ def show_instructions(screen, clock):
 
 
 def _load_cover(filename):
-    """메뉴 이미지를 화면을 꽉 채우는 배경으로 변환한다."""
+    # 배경 이미지 맞춤
     image = load.load_image(filename).convert()
     width, height = image.get_size()
     scale = max(SCREEN_WIDTH / width, SCREEN_HEIGHT / height)
